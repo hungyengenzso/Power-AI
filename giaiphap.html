@@ -63,6 +63,13 @@
       align-items: center;
       gap: 20px;
     }
+
+    .menu-toggle {
+      display: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: white;
+    }
     
     .chatbot-menu-btn {
       background-color: var(--accent-color);
@@ -344,8 +351,81 @@
       color: #666;
       font-size: 0.9rem;
     }
+
+    /* Mobile menu styles */
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      top: 70px;
+      left: 0;
+      width: 100%;
+      background-color: var(--primary-color);
+      padding: 15px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      z-index: 999;
+    }
+
+    .mobile-menu.show {
+      display: block;
+    }
+
+    .mobile-menu-item {
+      display: block;
+      color: white;
+      text-decoration: none;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 10px;
+    }
+
+    .mobile-menu-item:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+
+    .mobile-menu-btn {
+      background-color: var(--accent-color);
+      color: white;
+      padding: 8px 15px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      margin-bottom: 10px;
+    }
+
+    .mobile-user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .mobile-logout-btn {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 0;
+    }
     
+    /* Responsive styles */
     @media (max-width: 768px) {
+      .navbar-menu {
+        display: none;
+      }
+
+      .menu-toggle {
+        display: block;
+      }
+
       .solution-grid {
         grid-template-columns: 1fr;
       }
@@ -357,14 +437,28 @@
       .stats-section {
         grid-template-columns: 1fr 1fr;
       }
-    }
-.solution-img img {
-  width: 100%;
-  height: auto;
-  display: block;
-  border-radius: 8px; /* bo góc nếu muốn */
-}
 
+      .cta-section {
+        padding: 25px 15px;
+      }
+
+      .cta-title {
+        font-size: 1.5rem;
+      }
+    }
+
+    @media (min-width: 769px) {
+      .mobile-menu {
+        display: none !important;
+      }
+    }
+
+    .solution-img img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body>
@@ -374,6 +468,7 @@
       <i class="fas fa-bolt"></i>
       <span>Power AI</span>
     </div>
+    
     <div class="navbar-menu">
       <a href="chatbot.html" class="chatbot-menu-btn">
         <i class="fas fa-robot"></i>
@@ -390,7 +485,30 @@
         </button>
       </div>
     </div>
+    
+    <div class="menu-toggle" id="menuToggle">
+      <i class="fas fa-bars"></i>
+    </div>
   </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="chatbot.html" class="mobile-menu-btn">
+      <i class="fas fa-robot"></i>
+      <span>Chatbot AI</span>
+    </a>
+    <a href="index.html" class="mobile-menu-btn">
+      <i class="fas fa-chart-line"></i>
+      <span>Tiêu thụ điện</span>
+    </a>
+    
+    <div class="mobile-user-info">
+      <div class="user-avatar" id="mobileUserAvatar">U</div>
+      <button class="mobile-logout-btn" id="mobileLogoutBtn">
+        <i class="fas fa-sign-out-alt"></i> Đăng xuất
+      </button>
+    </div>
+  </div>
 
   <!-- Main Content -->
   <div class="container">
@@ -432,9 +550,7 @@
         <!-- Solution 1 -->
         <div class="solution-card">
           <div class="solution-img">
-<div class="solution-img">
-  <img src="https://megasunsolar.vn/wp-content/uploads/2017/08/dien-nang-luong-mat-troi-hoa-luoi-megasun-1-600x400.jpg" alt="Hệ thống năng lượng mặt trời">
-</div>
+            <img src="https://megasunsolar.vn/wp-content/uploads/2017/08/dien-nang-luong-mat-troi-hoa-luoi-megasun-1-600x400.jpg" alt="Hệ thống năng lượng mặt trời">
           </div>
           <div class="solution-content">
             <h3 class="solution-title"><i class="fas fa-solar-panel"></i> Năng lượng mặt trời</h3>
@@ -451,9 +567,7 @@
         <!-- Solution 2 -->
         <div class="solution-card">
           <div class="solution-img">
-<div class="solution-img">
-  <img src="https://kangennhatban.com.vn/wp-content/uploads/2024/07/bf674f0b3efd9ca3c5ec-1.jpg" alt="Thiết bị thông minh">
-</div>
+            <img src="https://kangennhatban.com.vn/wp-content/uploads/2024/07/bf674f0b3efd9ca3c5ec-1.jpg" alt="Thiết bị thông minh">
           </div>
           <div class="solution-content">
             <h3 class="solution-title"><i class="fas fa-home"></i> Thiết bị điện thông minh</h3>
@@ -470,9 +584,7 @@
         <!-- Solution 3 -->
         <div class="solution-card">
           <div class="solution-img">
-<div class="solution-img">
-  <img src="https://dmtsolar.com/uploads/102tech/images/bong-den-dien/bong-den-tiet-kiem-dien-2.jpg" alt="LED tiết kiệm điện">
-</div>
+            <img src="https://dmtsolar.com/uploads/102tech/images/bong-den-dien/bong-den-tiet-kiem-dien-2.jpg" alt="LED tiết kiệm điện">
           </div>
           <div class="solution-content">
             <h3 class="solution-title"><i class="fas fa-lightbulb"></i> Đèn LED tiết kiệm điện</h3>
@@ -604,6 +716,7 @@
       if (user) {
         // Update user info in navbar
         document.getElementById('userAvatar').textContent = user.email.charAt(0).toUpperCase();
+        document.getElementById('mobileUserAvatar').textContent = user.email.charAt(0).toUpperCase();
       } else {
         // Redirect to login page if not authenticated
         window.location.href = "login.html";
@@ -615,6 +728,28 @@
       auth.signOut().then(() => {
         window.location.href = "login.html";
       });
+    });
+
+    // Mobile logout button
+    document.getElementById("mobileLogoutBtn").addEventListener("click", () => {
+      auth.signOut().then(() => {
+        window.location.href = "login.html";
+      });
+    });
+
+    // Mobile menu toggle
+    document.getElementById("menuToggle").addEventListener("click", () => {
+      document.getElementById("mobileMenu").classList.toggle("show");
+    });
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', (e) => {
+      const mobileMenu = document.getElementById('mobileMenu');
+      const menuToggle = document.getElementById('menuToggle');
+      
+      if (!mobileMenu.contains(e.target) && e.target !== menuToggle && !menuToggle.contains(e.target)) {
+        mobileMenu.classList.remove('show');
+      }
     });
   </script>
 </body>
