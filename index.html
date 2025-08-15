@@ -64,29 +64,36 @@
       align-items: center;
       gap: 20px;
     }
+
+    .menu-toggle {
+      display: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: white;
+    }
     
-.chatbot-menu-btn {
-  background-color: var(--accent-color);
-  color: white;
-  padding: 8px 15px;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  font-weight: 500;
-}
+    .chatbot-menu-btn {
+      background-color: var(--accent-color);
+      color: white;
+      padding: 8px 15px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
 
-.chatbot-menu-btn:hover {
-  background-color: var(--secondary-color);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
+    .chatbot-menu-btn:hover {
+      background-color: var(--secondary-color);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
 
-.chatbot-menu-btn i {
-  font-size: 1rem;
-}
+    .chatbot-menu-btn i {
+      font-size: 1rem;
+    }
 
     .navbar-item {
       color: white;
@@ -377,6 +384,66 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+
+    /* Mobile menu styles */
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      top: 70px;
+      left: 0;
+      width: 100%;
+      background-color: var(--primary-color);
+      padding: 15px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      z-index: 999;
+    }
+
+    .mobile-menu.show {
+      display: block;
+    }
+
+    .mobile-menu-item {
+      display: block;
+      color: white;
+      text-decoration: none;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .mobile-menu-item:last-child {
+      border-bottom: none;
+    }
+
+    /* Responsive styles */
+    @media (max-width: 768px) {
+      .navbar-menu {
+        display: none;
+      }
+
+      .menu-toggle {
+        display: block;
+      }
+
+      .data-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .btn-container {
+        justify-content: center;
+      }
+
+      .chart-legend {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+    }
+
+    @media (min-width: 769px) {
+      .mobile-menu {
+        display: none !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -386,15 +453,16 @@
       <i class="fas fa-bolt"></i>
       <span>Power AI</span>
     </div>
+    
     <div class="navbar-menu">
-    <a href="chatbot.html" class="chatbot-menu-btn">
-      <i class="fas fa-robot"></i>
-      <span>Chatbot AI</span>
-    </a>
-    <a href="giaiphap.html" class="chatbot-menu-btn">
-      <i class="fas fa-solar-panel mr-2"></i>
-      <span>Giải pháp xanh</span>
-    </a>
+      <a href="chatbot.html" class="chatbot-menu-btn">
+        <i class="fas fa-robot"></i>
+        <span>Chatbot AI</span>
+      </a>
+      <a href="giaiphap.html" class="chatbot-menu-btn">
+        <i class="fas fa-solar-panel mr-2"></i>
+        <span>Giải pháp xanh</span>
+      </a>
       <div class="user-info">
         <div class="user-avatar" id="userAvatar">U</div>
         <button class="logout-btn" id="logoutBtn">
@@ -402,7 +470,24 @@
         </button>
       </div>
     </div>
+    
+    <div class="menu-toggle" id="menuToggle">
+      <i class="fas fa-bars"></i>
+    </div>
   </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="chatbot.html" class="mobile-menu-item">
+      <i class="fas fa-robot"></i> Chatbot AI
+    </a>
+    <a href="giaiphap.html" class="mobile-menu-item">
+      <i class="fas fa-solar-panel"></i> Giải pháp xanh
+    </a>
+    <div class="mobile-menu-item" id="mobileLogoutBtn">
+      <i class="fas fa-sign-out-alt"></i> Đăng xuất
+    </div>
+  </div>
 
   <!-- Main Content -->
   <div class="container">
@@ -569,6 +654,18 @@
         auth.signOut().then(() => {
           window.location.href = "login.html";
         });
+      });
+
+      // Mobile logout button
+      document.getElementById("mobileLogoutBtn").addEventListener("click", () => {
+        auth.signOut().then(() => {
+          window.location.href = "login.html";
+        });
+      });
+
+      // Mobile menu toggle
+      document.getElementById("menuToggle").addEventListener("click", () => {
+        document.getElementById("mobileMenu").classList.toggle("show");
       });
     }
 
