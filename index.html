@@ -65,6 +65,29 @@
       gap: 20px;
     }
     
+.chatbot-menu-btn {
+  background-color: var(--accent-color);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.chatbot-menu-btn:hover {
+  background-color: var(--secondary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.chatbot-menu-btn i {
+  font-size: 1rem;
+}
+
     .navbar-item {
       color: white;
       text-decoration: none;
@@ -364,6 +387,10 @@
       <span>Power AI</span>
     </div>
     <div class="navbar-menu">
+    <a href="chatbot.html" class="chatbot-menu-btn">
+      <i class="fas fa-robot"></i>
+      <span>Chatbot AI</span>
+    </a>
       <div class="user-info">
         <div class="user-avatar" id="userAvatar">U</div>
         <button class="logout-btn" id="logoutBtn">
