@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Power AI</title>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #4361ee;
+      --secondary-color: #3f37c9;
+      --accent-color: #4895ef;
+      --light-color: #f8f9fa;
+      --dark-color: #212529;
+      --success-color: #4cc9f0;
+      --warning-color: #f72585;
+      --danger-color: #ef233c;
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+    
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      padding: 0;
+      margin: 0;
+      background: #f5f7fa; 
+      color: var(--dark-color);
+    }
+    
+    /* Navigation styles */
+    .navbar {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    
+    .navbar-brand {
+      font-size: 1.5rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .navbar-brand i {
+      font-size: 1.8rem;
+    }
+    
+    .navbar-menu {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    .navbar-item {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 8px 12px;
+      border-radius: 6px;
+      transition: background-color 0.3s;
+    }
+    
+    .navbar-item:hover {
+      background-color: rgba(255,255,255,0.1);
+    }
+    
+    .navbar-item.active {
+      background-color: rgba(255,255,255,0.2);
+    }
+    
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background-color: white;
+      color: var(--primary-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+    
+    .logout-btn {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .logout-btn:hover {
+      text-decoration: underline;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+    
+    .page-title {
+      color: var(--primary-color); 
+      text-align: center;
+      margin-bottom: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    h2 { 
+      color: var(--secondary-color); 
+      margin: 0;
+      font-size: 1.5rem;
+    }
+    
+    h3 {
+      color: var(--danger-color);
+      margin: 0;
+      font-size: 1.3rem;
+    }
+    
+    .data-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .data-box { 
+      background: white; 
+      padding: 25px; 
+      border-radius: 12px; 
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .data-box:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+    }
+    
+    .data-box-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      color: var(--primary-color);
+      gap: 10px;
+    }
+    
+    .data-box-header i {
+      font-size: 1.5rem;
+      margin-top: 2px;
+    }
+    
+    .data-item {
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .data-label {
+      font-weight: 600;
+      color: var(--dark-color);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .data-label i {
+      width: 20px;
+      text-align: center;
+    }
+    
+    .data-value {
+      font-weight: 700;
+    }
+    
+    .kwh {
+      color: var(--success-color);
+    }
+    
+    .money {
+      color: var(--warning-color);
+    }
+    
+    .chart-container {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      margin-bottom: 30px;
+    }
+    
+    .chart-legend {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 15px;
+      flex-wrap: wrap;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.9rem;
+    }
+    
+    .legend-color {
+      width: 16px;
+      height: 16px;
+      border-radius: 3px;
+    }
+    
+    .alert-container {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      margin-bottom: 30px;
+      position: relative;
+    }
+    
+    .alert-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .alert-item {
+      padding: 10px;
+      border-left: 4px solid var(--danger-color);
+      margin-bottom: 8px;
+      background-color: rgba(239, 35, 60, 0.05);
+    }
+    
+    .alert-time {
+      font-weight: bold;
+      color: var(--danger-color);
+    }
+    
+    .alert-value {
+      font-weight: bold;
+    }
+    
+    input[type="date"] {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 1rem;
+      margin-bottom: 15px;
+      width: 100%;
+      max-width: 250px;
+    }
+    
+    .date-picker-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .date-picker-container i {
+      color: var(--primary-color);
+    }
+    
+    .btn {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .btn-danger {
+      background-color: var(--danger-color);
+    }
+    
+    .btn-danger:hover {
+      background-color: #d90429;
+    }
+    
+    .btn-warning {
+      background-color: var(--warning-color);
+    }
+    
+    .btn-warning:hover {
+      background-color: #d81159;
+    }
+    
+    .btn-container {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .no-alerts {
+      padding: 10px;
+      color: #666;
+      text-align: center;
+    }
+    
+    /* Loading indicator */
+    .loading-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 200px;
+    }
+    
+    .loading-spinner {
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid var(--primary-color);
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <i class="fas fa-bolt"></i>
+      <span>Power AI</span>
+    </div>
+    <div class="navbar-menu">
+      <div class="user-info">
+        <div class="user-avatar" id="userAvatar">U</div>
+        <button class="logout-btn" id="logoutBtn">
+          <i class="fas fa-sign-out-alt"></i> Đăng xuất
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container">
+    <h1 class="page-title"><i class="fas fa-bolt"></i> Bảng Điều Khiển Tiêu Thụ Điện</h1>
+
+    <div class="btn-container">
+      <button class="btn btn-danger" id="deleteAllBtn">
+        <i class="fas fa-trash-alt"></i> Xóa toàn bộ dữ liệu
+      </button>
+    </div>
+
+    <div class="data-grid">
+      <div class="data-box">
+        <div class="data-box-header">
+          <i class="fas fa-chart-line"></i>
+          <h2>Tổng tiêu thụ</h2>
+        </div>
+        <div class="data-item">
+          <span class="data-label"><i class="fas fa-bolt"></i> Tổng số điện đã tiêu thụ:</span> 
+          <span class="data-value kwh" id="totalKwh">Đang tải...</span> kWh
+        </div>
+        <div class="data-item">
+          <span class="data-label"><i class="fas fa-money-bill-wave"></i> Tổng số tiền điện:</span> 
+          <span class="data-value money" id="totalMoney">Đang tải...</span> VND
+        </div>
+      </div>
+
+      <div class="data-box">
+        <div class="data-box-header">
+          <i class="fas fa-calendar-day"></i>
+          <h2>Theo ngày</h2>
+        </div>
+        <div class="date-picker-container">
+          <i class="fas fa-calendar-alt"></i>
+          <input type="date" id="dayPicker" />
+        </div>
+        <div class="data-item">
+          <span class="data-label"><i class="fas fa-bolt"></i> Số điện tiêu thụ:</span> 
+          <span class="data-value kwh" id="dailyKwh">--</span> kWh
+        </div>
+        <div class="data-item">
+          <span class="data-label"><i class="fas fa-money-bill-wave"></i> Tiền điện:</span> 
+          <span class="data-value money" id="dailyMoney">--</span> VND
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-container">
+      <div class="data-box-header">
+        <i class="fas fa-chart-bar"></i>
+        <h2>Biểu đồ công suất tiêu thụ theo phút (30 phút gần nhất)</h2>
+      </div>
+      <div id="chartLoading" class="loading-container">
+        <div class="loading-spinner"></div>
+      </div>
+      <canvas id="minuteChart" height="120" style="display: none;"></canvas>
+      <div class="chart-legend">
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: rgba(67, 97, 238, 0.7);"></div>
+          <span>Công suất bình thường (≤ 0.25 kW)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: rgba(239, 35, 60, 0.7);"></div>
+          <span>Công suất cao (> 0.25 kW)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert-container">
+      <div class="alert-header">
+        <div class="data-box-header">
+          <i class="fas fa-exclamation-triangle"></i>
+          <h3>Cảnh báo tiêu thụ cao</h3>
+        </div>
+        <div>
+          <small>Ngưỡng cảnh báo: > 0.25 kW/phút</small>
+        </div>
+      </div>
+      <div class="alert-actions">
+        <button class="btn btn-warning" id="deleteAlertsBtn">
+          <i class="fas fa-trash-alt"></i> Xóa cảnh báo
+        </button>
+      </div>
+      <div id="alertsList">
+        <div class="loading-container">
+          <div class="loading-spinner"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBXMptx-Tt3dDLmWgRUgyfh2tW2BRGY1KE",
+      authDomain: "scan-text-eccf7.firebaseapp.com",
+      projectId: "scan-text-eccf7",
+      storageBucket: "scan-text-eccf7.appspot.com",
+      messagingSenderId: "116481688073",
+      appId: "1:116481688073:web:a85a3abcec812a9423eed8",
+      measurementId: "G-CRVRVRXHYF"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    
+    // Get current user's data reference
+    let currentUser = null;
+    let dataRef = null;
+    let alertsRef = null;
+    
+    // Electricity configuration
+    const electricityRate = 3000; // VND/kWh
+    const powerAlertThreshold = 0.25; // kW
+    let currentSelectedDate = new Date();
+    let chart;
+
+    // Check authentication state
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        currentUser = user;
+        initUserData();
+        await init();
+      } else {
+        // Redirect to login page if not authenticated
+        window.location.href = "login.html";
+      }
+    });
+
+    function initUserData() {
+      // Update user info in navbar
+      document.getElementById('userAvatar').textContent = currentUser.email.charAt(0).toUpperCase();
+      
+      // Initialize Firestore references for this user
+      dataRef = db.collection("users").doc(currentUser.uid).collection("scan_data");
+      alertsRef = db.collection("users").doc(currentUser.uid).collection("alerts");
+    }
+
+    async function init() {
+      // Setup event listeners
+      setupEventListeners();
+      
+      // Load initial data
+      await refreshAll();
+      
+      // Set up periodic data refresh (every 5 seconds)
+      setInterval(refreshAll, 5000);
+    }
+
+    function setupEventListeners() {
+      // Date picker
+      document.getElementById("dayPicker").addEventListener("change", async e => {
+        currentSelectedDate = new Date(e.target.value);
+        await updateDailyData(currentSelectedDate);
+      });
+
+      // Delete buttons
+      document.getElementById("deleteAllBtn").addEventListener("click", deleteAllData);
+      document.getElementById("deleteAlertsBtn").addEventListener("click", deleteAlerts);
+
+      // Logout button
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        auth.signOut().then(() => {
+          window.location.href = "login.html";
+        });
+      });
+    }
+
+    // Electricity monitoring functions
+    async function getLatestKwh() {
+      const snapshot = await dataRef.orderBy("timestamp", "desc").limit(2).get();
+      const docs = snapshot.docs.map(doc => doc.data());
+      
+      if (docs.length < 2) {
+        document.getElementById("totalKwh").innerText = "0.00";
+        document.getElementById("totalMoney").innerText = "0";
+        return { latest: 0, previous: 0 };
+      }
+      
+      const latest = Math.max(...docs.map(d => d.kwh));
+      const previous = Math.min(...docs.map(d => d.kwh));
+
+      document.getElementById("totalKwh").innerText = latest.toFixed(2);
+      document.getElementById("totalMoney").innerText = (latest * electricityRate).toLocaleString('vi-VN');
+
+      await updateDailyData(currentSelectedDate);
+
+      return { latest, previous };
+    }
+
+    async function getStartOfDayKwh(targetDate) {
+      const dayStart = new Date(targetDate);
+      dayStart.setHours(6, 0, 0, 0);
+      const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
+
+      const snapshot = await dataRef
+        .where("timestamp", ">=", dayStart)
+        .where("timestamp", "<=", dayEnd)
+        .orderBy("timestamp", "asc")
+        .get();
+
+      const dayDocs = snapshot.docs;
+      if (dayDocs.length === 0) return null;
+
+      const first = dayDocs[0].data().kwh;
+      const nextDayFirst = dayDocs[dayDocs.length - 1].data().kwh;
+
+      return { first, nextDayFirst };
+    }
+
+    async function updateDailyData(date) {
+      const result = await getStartOfDayKwh(date);
+      if (!result) {
+        document.getElementById("dailyKwh").innerText = "0.00";
+        document.getElementById("dailyMoney").innerText = "0";
+        return;
+      }
+
+      const consumed = result.nextDayFirst - result.first;
+      document.getElementById("dailyKwh").innerText = consumed.toFixed(2);
+      document.getElementById("dailyMoney").innerText = (consumed * electricityRate).toLocaleString('vi-VN');
+    }
+
+    async function drawChart() {
+      const now = new Date();
+      const thirtyMinutesAgo = new Date(now.getTime() - 30 * 60 * 1000);
+
+      const snapshot = await dataRef
+        .where("timestamp", ">=", thirtyMinutesAgo)
+        .orderBy("timestamp", "asc")
+        .get();
+
+      const docs = snapshot.docs.map(doc => doc.data()).sort((a, b) => a.timestamp.toDate() - b.timestamp.toDate());
+
+      const minutesData = Array(30).fill(0);
+      const labels = [];
+      const alerts = [];
+
+      for (let i = 0; i < 30; i++) {
+        const time = new Date(now.getTime() - (29 - i) * 60 * 1000);
+        labels.push(time.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }));
+      }
+
+      for (let i = 1; i < docs.length; i++) {
+        const prevTime = docs[i-1].timestamp.toDate();
+        const currentTime = docs[i].timestamp.toDate();
+        const diffMinutes = Math.round((currentTime - prevTime) / (60 * 1000));
+        const diffKwh = docs[i].kwh - docs[i-1].kwh;
+        
+        if (diffMinutes > 0) {
+          const powerPerMinute = diffKwh / diffMinutes;
+          
+          const startMinuteIndex = Math.max(0, 30 - Math.round((now - prevTime) / (60 * 1000)));
+          const endMinuteIndex = Math.min(29, 30 - Math.round((now - currentTime) / (60 * 1000)));
+          
+          for (let j = startMinuteIndex; j <= endMinuteIndex; j++) {
+            minutesData[j] = powerPerMinute;
+            
+            if (powerPerMinute > powerAlertThreshold) {
+              const alertTime = new Date(now.getTime() - (29 - j) * 60 * 1000);
+              alerts.push({
+                time: alertTime,
+                value: powerPerMinute,
+                minuteIndex: j
+              });
+            }
+          }
+        }
+      }
+
+      await processAlerts(alerts, minutesData, labels);
+
+      if (chart) chart.destroy();
+
+      // Hide loading spinner and show chart
+      document.getElementById('chartLoading').style.display = 'none';
+      document.getElementById('minuteChart').style.display = 'block';
+
+      chart = new Chart(document.getElementById("minuteChart"), {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: "Công suất (kW)",
+            data: minutesData,
+            backgroundColor: minutesData.map(value => 
+              value > powerAlertThreshold ? 'rgba(239, 35, 60, 0.7)' : 'rgba(67, 97, 238, 0.7)'
+            ),
+            borderColor: minutesData.map(value => 
+              value > powerAlertThreshold ? 'rgba(239, 35, 60, 1)' : 'rgba(67, 97, 238, 1)'
+            ),
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false,
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return context.dataset.label + ': ' + context.raw.toFixed(3) + ' kW';
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Công suất (kW)'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Thời gian'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    async function processAlerts(alerts, minutesData, labels) {
+      const alertsList = document.getElementById("alertsList");
+      alertsList.innerHTML = "";
+      
+      const uniqueAlerts = [];
+      const minuteSet = new Set();
+      
+      alerts.forEach(alert => {
+        if (!minuteSet.has(alert.minuteIndex)) {
+          minuteSet.add(alert.minuteIndex);
+          uniqueAlerts.push(alert);
+        }
+      });
+      
+      if (uniqueAlerts.length > 0) {
+        uniqueAlerts.sort((a, b) => b.time - a.time);
+        
+        uniqueAlerts.forEach(async alert => {
+          const alertElement = document.createElement("div");
+          alertElement.className = "alert-item";
+          alertElement.innerHTML = `
+            <div><span class="alert-time">${alert.time.toLocaleTimeString('vi-VN')}</span> - 
+            Công suất: <span class="alert-value">${alert.value.toFixed(3)} kW</span></div>
+            <div>Vượt ngưỡng cho phép (${powerAlertThreshold} kW/phút)</div>
+          `;
+          alertsList.appendChild(alertElement);
+          
+          const existingAlert = await alertsRef
+            .where("time", "==", alert.time)
+            .where("value", "==", alert.value)
+            .limit(1)
+            .get();
+            
+          if (existingAlert.empty) {
+            await alertsRef.add({
+              time: alert.time,
+              value: alert.value,
+              threshold: powerAlertThreshold,
+              timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+          }
+        });
+      } else {
+        alertsList.innerHTML = '<div class="no-alerts">Không có cảnh báo nào trong 30 phút gần nhất</div>';
+      }
+    }
+
+    async function loadRecentAlerts() {
+      const snapshot = await alertsRef
+        .orderBy("timestamp", "desc")
+        .limit(5)
+        .get();
+      
+      const alertsList = document.getElementById("alertsList");
+      alertsList.innerHTML = "";
+      
+      if (snapshot.empty) {
+        alertsList.innerHTML = '<div class="no-alerts">Không có cảnh báo nào gần đây</div>';
+        return;
+      }
+      
+      snapshot.forEach(doc => {
+        const alert = doc.data();
+        const alertElement = document.createElement("div");
+        alertElement.className = "alert-item";
+        alertElement.innerHTML = `
+          <div><span class="alert-time">${alert.time.toDate().toLocaleTimeString('vi-VN')}</span> - 
+          Công suất: <span class="alert-value">${alert.value.toFixed(3)} kW</span></div>
+          <div>Vượt ngưỡng cho phép (${alert.threshold} kW/phút)</div>
+        `;
+        alertsList.appendChild(alertElement);
+      });
+    }
+
+    async function deleteAllData() {
+      if (confirm("BẠN CÓ CHẮC CHẮN MUỐN XÓA TOÀN BỘ DỮ LIỆU?\n\nHành động này sẽ xóa tất cả dữ liệu đo lường và cảnh báo, không thể hoàn tác!")) {
+        try {
+          const scanSnapshot = await dataRef.get();
+          const scanBatch = db.batch();
+          scanSnapshot.docs.forEach(doc => {
+            scanBatch.delete(doc.ref);
+          });
+          await scanBatch.commit();
+          
+          const alertSnapshot = await alertsRef.get();
+          const alertBatch = db.batch();
+          alertSnapshot.docs.forEach(doc => {
+            alertBatch.delete(doc.ref);
+          });
+          await alertBatch.commit();
+          
+          alert("Đã xóa toàn bộ dữ liệu thành công!");
+          refreshAll();
+        } catch (error) {
+          console.error("Lỗi khi xóa dữ liệu:", error);
+          alert("Có lỗi xảy ra khi xóa dữ liệu: " + error.message);
+        }
+      }
+    }
+
+    async function deleteAlerts() {
+      if (confirm("Bạn có chắc chắn muốn xóa tất cả cảnh báo cũ?")) {
+        try {
+          const alertSnapshot = await alertsRef.get();
+          const batch = db.batch();
+          alertSnapshot.docs.forEach(doc => {
+            batch.delete(doc.ref);
+          });
+          await batch.commit();
+          
+          alert("Đã xóa tất cả cảnh báo thành công!");
+          loadRecentAlerts();
+        } catch (error) {
+          console.error("Lỗi khi xóa cảnh báo:", error);
+          alert("Có lỗi xảy ra khi xóa cảnh báo: " + error.message);
+        }
+      }
+    }
+
+    async function refreshAll() {
+      await getLatestKwh();
+      await drawChart();
+      await loadRecentAlerts();
+    }
+
+    // Set default date to today
+    const today = new Date();
+    document.getElementById('dayPicker').valueAsDate = today;
+    currentSelectedDate = today;
+  </script>
+</body>
+</html>
