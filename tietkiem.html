@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Power AI - Tiết kiệm điện</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      font-family: 'Arial', sans-serif; 
+    }
+    
+    body { 
+      background: #f5f5f5; 
+      color: #333; 
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #4caefe, #2d87e0);
+      color: white;
+      padding: 12px 5%;
+      display: flex;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      margin-right: auto;
+      cursor: pointer;
+    }
+    
+    .logo i {
+      font-size: 24px;
+      margin-right: 8px;
+    }
+    
+    .logo-text {
+      font-weight: bold;
+      font-size: 18px;
+      white-space: nowrap;
+    }
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+      margin-left: auto;
+    }
+    
+    .search-container {
+      display: flex;
+      align-items: center;
+      margin: 0 15px;
+    }
+    
+    .search-input {
+      width: 0;
+      padding: 0;
+      border-radius: 20px;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      opacity: 0;
+      visibility: hidden;
+    }
+    
+    .search-input.active {
+      width: 200px;
+      padding: 8px 15px;
+      opacity: 1;
+      visibility: visible;
+      margin-right: 10px;
+    }
+    
+    .search-toggle {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: transform 0.2s;
+    }
+    
+    .search-toggle:hover {
+      transform: scale(1.1);
+    }
+    
+    .notification {
+      position: relative;
+      flex-shrink: 0;
+      margin-left: 15px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    
+    .notification:hover {
+      transform: scale(1.1);
+    }
+    
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #ff4757;
+      color: white;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulse 2s infinite;
+    }
+
+    /* Auth buttons */
+    .auth-buttons {
+      display: flex;
+      align-items: center;
+      margin-left: 15px;
+    }
+    
+    .auth-btn {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 14px;
+      margin-left: 10px;
+      cursor: pointer;
+      transition: all 0.3s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 120px;
+    }
+    
+    .auth-btn:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    .auth-icon {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      margin-left: 10px;
+      transition: all 0.3s;
+    }
+    
+    .auth-icon:hover {
+      background: rgba(255,255,255,0.3);
+    }
+    
+    .user-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      margin-left: 10px;
+      cursor: pointer;
+      object-fit: cover;
+    }
+
+    /* Main content */
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 15px;
+    }
+    
+    .page-title {
+      color: #2d87e0;
+      text-align: center;
+      margin-bottom: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 24px;
+    }
+    
+    .savings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .savings-card { 
+      background: white; 
+      padding: 25px; 
+      border-radius: 12px; 
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      transition: all 0.3s ease;
+      text-decoration: none;
+      color: #333;
+      border: 1px solid rgba(0,0,0,0.05);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .savings-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .card-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      color: #2d87e0;
+      gap: 10px;
+    }
+    
+    .card-header i {
+      font-size: 1.5rem;
+      margin-top: 2px;
+    }
+    
+    .savings-item {
+      margin-bottom: 10px;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .savings-label {
+      font-weight: 600;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .savings-value {
+      font-weight: 700;
+    }
+    
+    .kwh {
+      color: #00b894;
+    }
+    
+    .money {
+      color: #e84393;
+    }
+    
+    .chart-container {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      margin-bottom: 30px;
+      transition: all 0.3s ease;
+    }
+    
+    .chart-container:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .chart-legend {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 15px;
+      flex-wrap: wrap;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+    }
+    
+    .legend-color {
+      width: 16px;
+      height: 16px;
+      border-radius: 3px;
+    }
+    
+    .ai-advice-container {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      margin-bottom: 30px;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+    
+    .ai-advice-container:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .ai-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .ai-message {
+      padding: 15px;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      border-left: 4px solid #4caefe;
+    }
+    
+    .ai-message-title {
+      font-weight: bold;
+      color: #2d87e0;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .ai-message-content {
+      line-height: 1.6;
+    }
+    
+    .btn {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #4caefe, #2d87e0);
+    }
+    
+    .btn-primary:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+    
+    .btn-success {
+      background: linear-gradient(135deg, #00b894, #00997a);
+    }
+    
+    .btn-success:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+    
+    .btn-container {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    /* Loading indicator */
+    .loading-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 200px;
+    }
+    
+    .loading-spinner {
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #2d87e0;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    /* Footer */
+    .footer {
+      background: #fff;
+      padding: 20px;
+      text-align: center;
+      border-top: 1px solid #eee;
+      margin-top: 30px;
+      font-size: 15px;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.03);
+    }
+    
+    .hotline {
+      display: inline-flex;
+      align-items: center;
+      background: linear-gradient(135deg, #4caefe, #2d87e0);
+      color: white;
+      padding: 12px 25px;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: bold;
+      box-shadow: 0 4px 15px rgba(76, 174, 254, 0.3);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .hotline::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0));
+      transform: rotate(30deg);
+      transition: all 0.5s;
+    }
+    
+    .hotline:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(76, 174, 254, 0.4);
+    }
+    
+    .hotline:hover::before {
+      left: 100%;
+    }
+    
+    .hotline i {
+      margin-right: 8px;
+      font-size: 16px;
+    }
+
+    /* Responsive styles */
+    @media (max-width: 768px) {
+      .savings-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .btn-container {
+        justify-content: center;
+      }
+      
+      .chart-legend {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+      
+      .search-input.active {
+        width: 150px;
+      }
+    }
+    
+    @media (min-width: 992px) {
+      .savings-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="logo" onclick="goToHome()">
+      <i class="fa-solid fa-bolt"></i>
+      <span class="logo-text">Power AI</span>
+    </div>
+    
+    <div class="header-right">
+      <div class="search-container">
+        <input type="text" class="search-input" placeholder="Tìm kiếm dịch vụ...">
+        <button class="search-toggle">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+      
+      <div class="notification">
+        <i class="fa fa-bell"></i>
+        <span class="notification-badge">3</span>
+      </div>
+      
+      <div class="auth-buttons" id="authButtons"></div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container">
+    <h1 class="page-title"><i class="fas fa-piggy-bank"></i> Phân tích tiết kiệm điện</h1>
+
+    <div class="savings-grid">
+      <div class="savings-card">
+        <div class="card-header">
+          <i class="fas fa-chart-line"></i>
+          <h2>Tiêu thụ tháng này</h2>
+        </div>
+        <div class="savings-item">
+          <span class="savings-label"><i class="fas fa-bolt"></i> Số điện đã dùng:</span> 
+          <span class="savings-value kwh" id="monthlyKwh">Đang tải...</span> kWh
+        </div>
+        <div class="savings-item">
+          <span class="savings-label"><i class="fas fa-money-bill-wave"></i> Tiền điện:</span> 
+          <span class="savings-value money" id="monthlyMoney">Đang tải...</span> VND
+        </div>
+        <div class="savings-item">
+          <span class="savings-label"><i class="fas fa-calendar"></i> So với tháng trước:</span> 
+          <span class="savings-value" id="monthlyComparison">Đang tải...</span>
+        </div>
+      </div>
+
+      <div class="savings-card">
+        <div class="card-header">
+          <i class="fas fa-lightbulb"></i>
+          <h2>Tiềm năng tiết kiệm</h2>
+        </div>
+        <div class="savings-item">
+          <span class="savings-label"><i class="fas fa-bolt"></i> Có thể tiết kiệm:</span> 
+          <span class="savings-value kwh" id="potentialKwh">--</span> kWh
+        </div>
+        <div class="savings-item">
+          <span class="savings-label"><i class="fas fa-money-bill-wave"></i> Giá trị tiết kiệm:</span> 
+          <span class="savings-value money" id="potentialMoney">--</span> VND
+        </div>
+        <div class="savings-item">
+          <span class="savings-label"><i class="fas fa-percentage"></i> Tỷ lệ tiết kiệm:</span> 
+          <span class="savings-value" id="savingPercentage">--</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-container">
+      <div class="card-header">
+        <i class="fas fa-chart-bar"></i>
+        <h2>Biểu đồ tiêu thụ 6 tháng gần nhất</h2>
+      </div>
+      <div id="chartLoading" class="loading-container">
+        <div class="loading-spinner"></div>
+      </div>
+      <canvas id="monthlyChart" height="120" style="display: none;"></canvas>
+      <div class="chart-legend">
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: rgba(67, 97, 238, 0.7);"></div>
+          <span>Tiêu thụ thực tế</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: rgba(0, 184, 148, 0.7);"></div>
+          <span>Mục tiêu tiết kiệm</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="ai-advice-container">
+      <div class="ai-header">
+        <div class="card-header">
+          <i class="fas fa-robot"></i>
+          <h2>Lời khuyên tiết kiệm điện từ AI</h2>
+        </div>
+        <button class="btn btn-primary" id="refreshAdviceBtn">
+          <i class="fas fa-sync-alt"></i> Làm mới
+        </button>
+      </div>
+      
+      <div id="aiAdviceLoading" class="loading-container" style="display: none;">
+        <div class="loading-spinner"></div>
+      </div>
+      
+      <div id="aiAdviceContent">
+        <div class="ai-message">
+          <div class="ai-message-title">
+            <i class="fas fa-lightbulb"></i> Phân tích thói quen sử dụng
+          </div>
+          <div class="ai-message-content" id="usageAnalysis">
+            Đang phân tích dữ liệu tiêu thụ điện của bạn...
+          </div>
+        </div>
+        
+        <div class="ai-message">
+          <div class="ai-message-title">
+            <i class="fas fa-tools"></i> Cải thiện thiết bị
+          </div>
+          <div class="ai-message-content" id="deviceImprovement">
+            Đang phân tích các thiết bị tiêu thụ nhiều điện...
+          </div>
+        </div>
+        
+        <div class="ai-message">
+          <div class="ai-message-title">
+            <i class="fas fa-clock"></i> Tối ưu thời gian sử dụng
+          </div>
+          <div class="ai-message-content" id="timeOptimization">
+            Đang phân tích thời gian sử dụng điện cao điểm...
+          </div>
+        </div>
+        
+        <div class="ai-message">
+          <div class="ai-message-title">
+            <i class="fas fa-coins"></i> Ước tính tiết kiệm
+          </div>
+          <div class="ai-message-content" id="savingEstimation">
+            Đang tính toán tiềm năng tiết kiệm...
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <a href="tel:0977893086" class="hotline">
+      <i class="fas fa-phone-alt"></i> Liên hệ: 0977893086
+    </a>
+  </div>
+
+  <script>
+    // Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyBXMptx-Tt3dDLmWgRUgyfh2tW2BRGY1KE",
+      authDomain: "scan-text-eccf7.firebaseapp.com",
+      projectId: "scan-text-eccf7",
+      storageBucket: "scan-text-eccf7.appspot.com",
+      messagingSenderId: "116481688073",
+      appId: "1:116481688073:web:a85a3abcec812a9423eed8",
+      measurementId: "G-CRVRVRXHYF"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    
+    // Get current user's data reference
+    let currentUser = null;
+    let dataRef = null;
+    let monthlyChart = null;
+    
+    // Electricity configuration
+    const electricityRate = 3000; // VND/kWh
+    const savingTargetPercentage = 0.15; // 15% savings target
+
+    // Check authentication state
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        currentUser = user;
+        updateAuthButtons(user);
+        initUserData();
+        await init();
+      } else {
+        // Redirect to login page if not authenticated
+        window.location.href = "index.html";
+      }
+    });
+
+    function updateAuthButtons(user) {
+      const authButtons = document.getElementById('authButtons');
+      if (user) {
+        authButtons.innerHTML = `
+          <button class="auth-btn" onclick="logout()" title="Đăng xuất">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Đăng xuất</span>
+          </button>
+          ${user.photoURL ? 
+            `<img src="${user.photoURL}" class="user-avatar" title="${user.displayName || user.email}">` : 
+            `<span class="auth-btn" title="${user.displayName || user.email}">
+              <i class="fas fa-user"></i>
+              <span>${user.displayName || user.email.split('@')[0]}</span>
+            </span>`}
+        `;
+      } else {
+        authButtons.innerHTML = `
+          <button class="auth-btn" onclick="window.location.href='index.html'">
+            <i class="fas fa-sign-in-alt"></i>
+            <span>Đăng nhập</span>
+          </button>
+        `;
+      }
+    }
+
+    function initUserData() {
+      // Initialize Firestore references for this user
+      dataRef = db.collection("users").doc(currentUser.uid).collection("scan_data");
+    }
+
+    async function init() {
+      // Setup event listeners
+      setupEventListeners();
+      
+      // Load initial data
+      await refreshAll();
+    }
+
+    function setupEventListeners() {
+      // Refresh advice button
+      document.getElementById("refreshAdviceBtn").addEventListener("click", generateAIAdvice);
+
+      // Search functionality
+      const searchToggle = document.querySelector('.search-toggle');
+      const searchInput = document.querySelector('.search-input');
+      
+      searchToggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        searchInput.classList.toggle('active');
+        if (searchInput.classList.contains('active')) {
+          searchInput.focus();
+        }
+      });
+      
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('.search-container') && searchInput.classList.contains('active')) {
+          searchInput.classList.remove('active');
+        }
+      });
+    }
+
+    async function refreshAll() {
+      await loadMonthlyData();
+      await drawMonthlyChart();
+      await generateAIAdvice();
+    }
+
+    async function loadMonthlyData() {
+      const now = new Date();
+      const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+      
+      // Get current month data
+      const currentMonthSnapshot = await dataRef
+        .where("timestamp", ">=", currentMonthStart)
+        .orderBy("timestamp", "asc")
+        .get();
+      
+      let currentMonthKwh = 0;
+      if (!currentMonthSnapshot.empty) {
+        const first = currentMonthSnapshot.docs[0].data().kwh;
+        const last = currentMonthSnapshot.docs[currentMonthSnapshot.docs.length - 1].data().kwh;
+        currentMonthKwh = last - first;
+      }
+      
+      // Get last month data
+      const lastMonthSnapshot = await dataRef
+        .where("timestamp", ">=", lastMonthStart)
+        .where("timestamp", "<=", lastMonthEnd)
+        .orderBy("timestamp", "asc")
+        .get();
+      
+      let lastMonthKwh = 0;
+      if (!lastMonthSnapshot.empty) {
+        const first = lastMonthSnapshot.docs[0].data().kwh;
+        const last = lastMonthSnapshot.docs[lastMonthSnapshot.docs.length - 1].data().kwh;
+        lastMonthKwh = last - first;
+      }
+      
+      // Update UI
+      document.getElementById("monthlyKwh").innerText = currentMonthKwh.toFixed(2);
+      document.getElementById("monthlyMoney").innerText = (currentMonthKwh * electricityRate).toLocaleString('vi-VN');
+      
+      const comparison = currentMonthKwh - lastMonthKwh;
+      const comparisonElement = document.getElementById("monthlyComparison");
+      
+      if (comparison > 0) {
+        comparisonElement.innerHTML = `<span style="color: #e84393;">Tăng ${Math.abs(comparison).toFixed(2)} kWh</span>`;
+      } else if (comparison < 0) {
+        comparisonElement.innerHTML = `<span style="color: #00b894;">Giảm ${Math.abs(comparison).toFixed(2)} kWh</span>`;
+      } else {
+        comparisonElement.innerHTML = "Không thay đổi";
+      }
+      
+      // Calculate potential savings
+      const potentialKwh = currentMonthKwh * savingTargetPercentage;
+      document.getElementById("potentialKwh").innerText = potentialKwh.toFixed(2);
+      document.getElementById("potentialMoney").innerText = (potentialKwh * electricityRate).toLocaleString('vi-VN');
+      document.getElementById("savingPercentage").innerText = `${(savingTargetPercentage * 100).toFixed(0)}%`;
+      
+      return { currentMonthKwh, lastMonthKwh };
+    }
+
+    async function getLastSixMonthsData() {
+      const now = new Date();
+      const monthsData = [];
+      
+      for (let i = 5; i >= 0; i--) {
+        const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0);
+        
+        const snapshot = await dataRef
+          .where("timestamp", ">=", monthStart)
+          .where("timestamp", "<=", monthEnd)
+          .orderBy("timestamp", "asc")
+          .get();
+        
+        let monthKwh = 0;
+        if (!snapshot.empty) {
+          const first = snapshot.docs[0].data().kwh;
+          const last = snapshot.docs[snapshot.docs.length - 1].data().kwh;
+          monthKwh = last - first;
+        }
+        
+        monthsData.push({
+          month: monthStart.toLocaleDateString('vi-VN', { month: 'short', year: 'numeric' }),
+          kwh: monthKwh,
+          target: monthKwh * (1 - savingTargetPercentage)
+        });
+      }
+      
+      return monthsData;
+    }
+
+    async function drawMonthlyChart() {
+      const monthsData = await getLastSixMonthsData();
+      
+      if (monthlyChart) monthlyChart.destroy();
+
+      // Hide loading spinner and show chart
+      document.getElementById('chartLoading').style.display = 'none';
+      document.getElementById('monthlyChart').style.display = 'block';
+
+      const ctx = document.getElementById('monthlyChart').getContext('2d');
+      monthlyChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: monthsData.map(data => data.month),
+          datasets: [
+            {
+              label: 'Tiêu thụ thực tế',
+              data: monthsData.map(data => data.kwh),
+              backgroundColor: 'rgba(67, 97, 238, 0.7)',
+              borderColor: 'rgba(67, 97, 238, 1)',
+              borderWidth: 1
+            },
+            {
+              label: 'Mục tiêu tiết kiệm',
+              data: monthsData.map(data => data.target),
+              backgroundColor: 'rgba(0, 184, 148, 0.7)',
+              borderColor: 'rgba(0, 184, 148, 1)',
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'top',
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `${context.dataset.label}: ${context.raw.toFixed(2)} kWh`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Số điện (kWh)'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Tháng'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    async function generateAIAdvice() {
+      const aiAdviceContent = document.getElementById('aiAdviceContent');
+      const aiAdviceLoading = document.getElementById('aiAdviceLoading');
+      
+      // Show loading and hide content
+      aiAdviceContent.style.display = 'none';
+      aiAdviceLoading.style.display = 'flex';
+      
+      try {
+        // Get data for AI analysis
+        const { currentMonthKwh, lastMonthKwh } = await loadMonthlyData();
+        const monthsData = await getLastSixMonthsData();
+        
+        // Simulate AI analysis (in a real app, this would call an AI API)
+        // For demo purposes, we'll use predefined responses based on the data
+        
+        // Usage analysis
+        const usageTrend = currentMonthKwh > lastMonthKwh ? 'tăng' : 'giảm';
+        const usageDiff = Math.abs(currentMonthKwh - lastMonthKwh);
+        document.getElementById('usageAnalysis').innerHTML = `
+          Tháng này bạn đã tiêu thụ <strong>${currentMonthKwh.toFixed(2)} kWh</strong>, 
+          ${usageTrend} <strong>${usageDiff.toFixed(2)} kWh</strong> so với tháng trước.<br><br>
+          ${currentMonthKwh > lastMonthKwh ? 
+            'Bạn đang có xu hướng sử dụng điện nhiều hơn. Hãy kiểm tra các thiết bị điện trong nhà.' : 
+            'Bạn đang đi đúng hướng trong việc tiết kiệm điện. Tiếp tục phát huy!'}
+        `;
+        
+        // Device improvement
+        const peakMonth = monthsData.reduce((prev, current) => (prev.kwh > current.kwh) ? prev : current);
+        document.getElementById('deviceImprovement').innerHTML = `
+          Tháng ${peakMonth.month} là tháng bạn tiêu thụ điện nhiều nhất (${peakMonth.kwh.toFixed(2)} kWh).<br><br>
+          <strong>Lời khuyên:</strong> 
+          ${peakMonth.kwh > 300 ? 
+            'Bạn nên kiểm tra các thiết bị điện công suất cao như điều hòa, máy nước nóng, tủ lạnh cũ.' : 
+            'Các thiết bị điện của bạn đang hoạt động khá hiệu quả. Có thể cân nhắc thay thế bóng đèn bằng đèn LED nếu chưa.'}
+        `;
+        
+        // Time optimization
+        const avgMonthlyKwh = monthsData.reduce((sum, month) => sum + month.kwh, 0) / monthsData.length;
+        document.getElementById('timeOptimization').innerHTML = `
+          Trung bình mỗi tháng bạn tiêu thụ khoảng <strong>${avgMonthlyKwh.toFixed(2)} kWh</strong>.<br><br>
+          <strong>Lời khuyên:</strong> 
+          ${avgMonthlyKwh > 200 ? 
+            'Hãy sử dụng các thiết bị điện vào giờ thấp điểm (sau 22h hoặc trước 17h) để tiết kiệm chi phí.' : 
+            'Bạn đang sử dụng điện khá hợp lý. Có thể tắt các thiết bị không cần thiết khi không sử dụng để tiết kiệm thêm.'}
+        `;
+        
+        // Saving estimation
+        const potentialMonthlySaving = currentMonthKwh * savingTargetPercentage;
+        document.getElementById('savingEstimation').innerHTML = `
+          Với các biện pháp tiết kiệm, bạn có thể giảm <strong>${potentialMonthlySaving.toFixed(2)} kWh</strong> mỗi tháng, 
+          tương đương <strong>${(potentialMonthlySaving * electricityRate).toLocaleString('vi-VN')} VND</strong>.<br><br>
+          <strong>Mục tiêu:</strong> Giảm ${(savingTargetPercentage * 100).toFixed(0)}% tiêu thụ điện so với hiện tại.
+        `;
+        
+      } catch (error) {
+        console.error("Lỗi khi tạo lời khuyên AI:", error);
+        document.getElementById('usageAnalysis').innerHTML = "Không thể phân tích dữ liệu sử dụng điện.";
+        document.getElementById('deviceImprovement').innerHTML = "Không thể phân tích các thiết bị điện.";
+        document.getElementById('timeOptimization').innerHTML = "Không thể phân tích thời gian sử dụng.";
+        document.getElementById('savingEstimation').innerHTML = "Không thể tính toán tiềm năng tiết kiệm.";
+      } finally {
+        // Hide loading and show content
+        aiAdviceLoading.style.display = 'none';
+        aiAdviceContent.style.display = 'block';
+      }
+    }
+
+    function logout() {
+      auth.signOut().then(() => {
+        window.location.href = "index.html";
+      });
+    }
+
+    function goToHome() {
+      window.location.href = "home.html";
+    }
+  </script>
+</body>
+</html>
