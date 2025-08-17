@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Power AI - Báo cáo điện năng</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+  <!-- SheetJS for Excel export -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+  <style>
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      font-family: 'Arial', sans-serif; 
+    }
+    
+    body { 
+      background: #f5f5f5; 
+      color: #333; 
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #4caefe, #2d87e0);
+      color: white;
+      padding: 12px 5%;
+      display: flex;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      margin-right: auto;
+      cursor: pointer;
+    }
+    
+    .logo i {
+      font-size: 24px;
+      margin-right: 8px;
+    }
+    
+    .logo-text {
+      font-weight: bold;
+      font-size: 18px;
+      white-space: nowrap;
+    }
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+      margin-left: auto;
+    }
+    
+    .search-container {
+      display: flex;
+      align-items: center;
+      margin: 0 15px;
+    }
+    
+    .search-input {
+      width: 0;
+      padding: 0;
+      border-radius: 20px;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      opacity: 0;
+      visibility: hidden;
+    }
+    
+    .search-input.active {
+      width: 200px;
+      padding: 8px 15px;
+      opacity: 1;
+      visibility: visible;
+      margin-right: 10px;
+    }
+    
+    .search-toggle {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: transform 0.2s;
+    }
+    
+    .search-toggle:hover {
+      transform: scale(1.1);
+    }
+    
+    .notification {
+      position: relative;
+      flex-shrink: 0;
+      margin-left: 15px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    
+    .notification:hover {
+      transform: scale(1.1);
+    }
+    
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #ff4757;
+      color: white;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulse 2s infinite;
+    }
+
+    /* Auth buttons */
+    .auth-buttons {
+      display: flex;
+      align-items: center;
+      margin-left: 15px;
+    }
+    
+    .auth-btn {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 14px;
+      margin-left: 10px;
+      cursor: pointer;
+      transition: all 0.3s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 120px;
+    }
+    
+    .auth-btn:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    .auth-icon {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      margin-left: 10px;
+      transition: all 0.3s;
+    }
+    
+    .auth-icon:hover {
+      background: rgba(255,255,255,0.3);
+    }
+    
+    .user-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      margin-left: 10px;
+      cursor: pointer;
+      object-fit: cover;
+    }
+
+    /* Main content */
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 15px;
+    }
+    
+    .page-title {
+      color: #2d87e0;
+      text-align: center;
+      margin-bottom: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 24px;
+    }
+    
+    /* Report controls */
+    .report-controls {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      align-items: center;
+    }
+    
+    .report-type {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    
+    .report-type-btn {
+      padding: 8px 15px;
+      border: none;
+      border-radius: 6px;
+      background: #f0f0f0;
+      color: #555;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: 600;
+    }
+    
+    .report-type-btn.active {
+      background: #2d87e0;
+      color: white;
+    }
+    
+    .date-range {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    
+    .date-input {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+      margin-left: auto;
+    }
+    
+    .btn {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #4caefe, #2d87e0);
+    }
+    
+    .btn-primary:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+    
+    .btn-success {
+      background: linear-gradient(135deg, #20bf6b, #26de81);
+    }
+    
+    .btn-success:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+    
+    /* Report summary */
+    .report-summary {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+    }
+    
+    .summary-item {
+      padding: 15px;
+      border-radius: 8px;
+      background: #f9f9f9;
+    }
+    
+    .summary-label {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 5px;
+    }
+    
+    .summary-value {
+      font-size: 20px;
+      font-weight: bold;
+      color: #2d87e0;
+    }
+    
+    .summary-value.kwh {
+      color: #00b894;
+    }
+    
+    .summary-value.money {
+      color: #e84393;
+    }
+    
+    .summary-value.alerts {
+      color: #ff4757;
+    }
+    
+    /* Report table */
+    .report-table-container {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      margin-bottom: 30px;
+      overflow-x: auto;
+    }
+    
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    
+    .report-table th {
+      background: #2d87e0;
+      color: white;
+      padding: 12px 15px;
+      text-align: left;
+    }
+    
+    .report-table td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .report-table tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    
+    .report-table tr:hover {
+      background-color: #f1f1f1;
+    }
+    
+    .text-right {
+      text-align: right;
+    }
+    
+    .text-center {
+      text-align: center;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    
+    .badge-warning {
+      background-color: #fdcb6e;
+      color: #d63031;
+    }
+    
+    /* Loading indicator */
+    .loading-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 200px;
+    }
+    
+    .loading-spinner {
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #2d87e0;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    /* Footer */
+    .footer {
+      background: #fff;
+      padding: 20px;
+      text-align: center;
+      border-top: 1px solid #eee;
+      margin-top: 30px;
+      font-size: 15px;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.03);
+    }
+    
+    .hotline {
+      display: inline-flex;
+      align-items: center;
+      background: linear-gradient(135deg, #4caefe, #2d87e0);
+      color: white;
+      padding: 12px 25px;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: bold;
+      box-shadow: 0 4px 15px rgba(76, 174, 254, 0.3);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .hotline::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0));
+      transform: rotate(30deg);
+      transition: all 0.5s;
+    }
+    
+    .hotline:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(76, 174, 254, 0.4);
+    }
+    
+    .hotline:hover::before {
+      left: 100%;
+    }
+    
+    .hotline i {
+      margin-right: 8px;
+      font-size: 16px;
+    }
+
+    /* Responsive styles */
+    @media (max-width: 768px) {
+      .report-controls {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .action-buttons {
+        margin-left: 0;
+        width: 100%;
+        justify-content: flex-end;
+      }
+      
+      .report-summary {
+        grid-template-columns: 1fr;
+      }
+      
+      .search-input.active {
+        width: 150px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="logo" onclick="goToHome()">
+      <i class="fa-solid fa-bolt"></i>
+      <span class="logo-text">Power AI</span>
+    </div>
+    
+    <div class="header-right">
+      <div class="search-container">
+        <input type="text" class="search-input" placeholder="Tìm kiếm dịch vụ...">
+        <button class="search-toggle">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+      
+      <div class="notification">
+        <i class="fa fa-bell"></i>
+        <span class="notification-badge">3</span>
+      </div>
+      
+      <div class="auth-buttons" id="authButtons"></div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container">
+    <h1 class="page-title"><i class="fas fa-file-alt"></i> Báo cáo điện năng tiêu thụ</h1>
+    
+    <!-- Report Controls -->
+    <div class="report-controls">
+      <div class="report-type">
+        <button class="report-type-btn active" data-type="daily"><i class="fas fa-calendar-day"></i> Theo ngày</button>
+        <button class="report-type-btn" data-type="weekly"><i class="fas fa-calendar-week"></i> Theo tuần</button>
+        <button class="report-type-btn" data-type="monthly"><i class="fas fa-calendar-alt"></i> Theo tháng</button>
+      </div>
+      
+      <div class="date-range">
+        <span>Từ ngày:</span>
+        <input type="date" id="startDate" class="date-input">
+        <span>Đến ngày:</span>
+        <input type="date" id="endDate" class="date-input">
+      </div>
+      
+      <div class="action-buttons">
+        <button class="btn btn-primary" id="generateReportBtn">
+          <i class="fas fa-sync-alt"></i> Tạo báo cáo
+        </button>
+        <button class="btn btn-success" id="exportExcelBtn">
+          <i class="fas fa-file-excel"></i> Xuất Excel
+        </button>
+      </div>
+    </div>
+    
+    <!-- Report Summary -->
+    <div class="report-summary" id="reportSummary">
+      <div class="summary-item">
+        <div class="summary-label">Tổng số ngày</div>
+        <div class="summary-value" id="totalDays">0</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label">Tổng điện năng tiêu thụ</div>
+        <div class="summary-value kwh" id="totalKwh">0.00 kWh</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label">Tổng tiền điện</div>
+        <div class="summary-value money" id="totalMoney">0 VND</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label">Tổng số lần cảnh báo</div>
+        <div class="summary-value alerts" id="totalAlerts">0</div>
+      </div>
+    </div>
+    
+    <!-- Report Table -->
+    <div class="report-table-container">
+      <div id="tableLoading" class="loading-container">
+        <div class="loading-spinner"></div>
+      </div>
+      <table class="report-table" id="reportTable" style="display: none;">
+        <thead>
+          <tr>
+            <th>Ngày</th>
+            <th class="text-right">Điện năng tiêu thụ (kWh)</th>
+            <th class="text-right">Tiền điện (VND)</th>
+            <th class="text-center">Số lần cảnh báo</th>
+            <th>Ghi chú</th>
+          </tr>
+        </thead>
+        <tbody id="reportTableBody">
+          <!-- Data will be inserted here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <a href="tel:0977893086" class="hotline">
+      <i class="fas fa-phone-alt"></i> Liên hệ: 0977893086
+    </a>
+  </div>
+
+  <script>
+    // Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyBXMptx-Tt3dDLmWgRUgyfh2tW2BRGY1KE",
+      authDomain: "scan-text-eccf7.firebaseapp.com",
+      projectId: "scan-text-eccf7",
+      storageBucket: "scan-text-eccf7.appspot.com",
+      messagingSenderId: "116481688073",
+      appId: "1:116481688073:web:a85a3abcec812a9423eed8",
+      measurementId: "G-CRVRVRXHYF"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    
+    // Get current user's data reference
+    let currentUser = null;
+    let dataRef = null;
+    let alertsRef = null;
+    
+    // Electricity configuration
+    const electricityRate = 3000; // VND/kWh
+    const powerAlertThreshold = 0.25; // kW
+    let reportData = [];
+    let currentReportType = 'daily';
+
+    // Check authentication state
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        currentUser = user;
+        updateAuthButtons(user);
+        initUserData();
+        await init();
+      } else {
+        // Redirect to login page if not authenticated
+        window.location.href = "index.html";
+      }
+    });
+
+    function updateAuthButtons(user) {
+      const authButtons = document.getElementById('authButtons');
+      if (user) {
+        authButtons.innerHTML = `
+          <button class="auth-btn" onclick="logout()" title="Đăng xuất">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Đăng xuất</span>
+          </button>
+          ${user.photoURL ? 
+            `<img src="${user.photoURL}" class="user-avatar" title="${user.displayName || user.email}">` : 
+            `<span class="auth-btn" title="${user.displayName || user.email}">
+              <i class="fas fa-user"></i>
+              <span>${user.displayName || user.email.split('@')[0]}</span>
+            </span>`}
+        `;
+      } else {
+        authButtons.innerHTML = `
+          <button class="auth-btn" onclick="window.location.href='index.html'">
+            <i class="fas fa-sign-in-alt"></i>
+            <span>Đăng nhập</span>
+          </button>
+        `;
+      }
+    }
+
+    function initUserData() {
+      // Initialize Firestore references for this user
+      dataRef = db.collection("users").doc(currentUser.uid).collection("scan_data");
+      alertsRef = db.collection("users").doc(currentUser.uid).collection("alerts");
+    }
+
+    async function init() {
+      // Set default dates (today and 7 days ago)
+      const today = new Date();
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(today.getDate() - 7);
+      
+      document.getElementById('startDate').valueAsDate = sevenDaysAgo;
+      document.getElementById('endDate').valueAsDate = today;
+      
+      // Setup event listeners
+      setupEventListeners();
+      
+      // Generate initial report
+      await generateReport();
+    }
+
+    function setupEventListeners() {
+      // Report type buttons
+      document.querySelectorAll('.report-type-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          document.querySelectorAll('.report-type-btn').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          currentReportType = this.dataset.type;
+          generateReport();
+        });
+      });
+      
+      // Generate report button
+      document.getElementById('generateReportBtn').addEventListener('click', generateReport);
+      
+      // Export Excel button
+      document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
+      
+      // Search functionality
+      const searchToggle = document.querySelector('.search-toggle');
+      const searchInput = document.querySelector('.search-input');
+      
+      searchToggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        searchInput.classList.toggle('active');
+        if (searchInput.classList.contains('active')) {
+          searchInput.focus();
+        }
+      });
+      
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('.search-container') && searchInput.classList.contains('active')) {
+          searchInput.classList.remove('active');
+        }
+      });
+    }
+
+    async function generateReport() {
+      try {
+        // Show loading
+        document.getElementById('tableLoading').style.display = 'flex';
+        document.getElementById('reportTable').style.display = 'none';
+        
+        const startDate = new Date(document.getElementById('startDate').value);
+        const endDate = new Date(document.getElementById('endDate').value);
+        
+        // Adjust dates to start and end of day
+        startDate.setHours(6, 0, 0, 0);
+        endDate.setHours(29, 59, 59, 999); // Next day 5:59:59
+        
+        if (startDate > endDate) {
+          alert('Ngày bắt đầu phải trước ngày kết thúc');
+          return;
+        }
+        
+        // Get data based on report type
+        if (currentReportType === 'daily') {
+          await generateDailyReport(startDate, endDate);
+        } else if (currentReportType === 'weekly') {
+          await generateWeeklyReport(startDate, endDate);
+        } else if (currentReportType === 'monthly') {
+          await generateMonthlyReport(startDate, endDate);
+        }
+        
+        // Update summary
+        updateReportSummary();
+        
+        // Hide loading and show table
+        document.getElementById('tableLoading').style.display = 'none';
+        document.getElementById('reportTable').style.display = 'table';
+      } catch (error) {
+        console.error('Error generating report:', error);
+        alert('Có lỗi xảy ra khi tạo báo cáo: ' + error.message);
+      }
+    }
+    
+    async function generateDailyReport(startDate, endDate) {
+      // Get all scan data in date range
+      const scanSnapshot = await dataRef
+        .where("timestamp", ">=", startDate)
+        .where("timestamp", "<=", endDate)
+        .orderBy("timestamp", "asc")
+        .get();
+      
+      // Get all alerts in date range
+      const alertsSnapshot = await alertsRef
+        .where("time", ">=", startDate)
+        .where("time", "<=", endDate)
+        .orderBy("time", "asc")
+        .get();
+      
+      // Process data by day
+      reportData = [];
+      const alertsByDay = {};
+      
+      // Group alerts by day
+      alertsSnapshot.forEach(doc => {
+        const alert = doc.data();
+        const alertDate = alert.time.toDate();
+        const dayKey = formatDateKey(alertDate);
+        
+        if (!alertsByDay[dayKey]) {
+          alertsByDay[dayKey] = 0;
+        }
+        alertsByDay[dayKey]++;
+      });
+      
+      // Process scan data
+      const scanData = {};
+      scanSnapshot.forEach(doc => {
+        const data = doc.data();
+        const timestamp = data.timestamp.toDate();
+        const dayKey = formatDateKey(timestamp);
+        
+        if (!scanData[dayKey]) {
+          scanData[dayKey] = {
+            first: null,
+            last: null,
+            date: timestamp
+          };
+        }
+        
+        // Track first and last reading of the day
+        if (!scanData[dayKey].first || timestamp < scanData[dayKey].first.timestamp) {
+          scanData[dayKey].first = {
+            kwh: data.kwh,
+            timestamp: timestamp
+          };
+        }
+        
+        if (!scanData[dayKey].last || timestamp > scanData[dayKey].last.timestamp) {
+          scanData[dayKey].last = {
+            kwh: data.kwh,
+            timestamp: timestamp
+          };
+        }
+      });
+      
+      // Create report data for each day
+      for (const dayKey in scanData) {
+        const dayData = scanData[dayKey];
+        if (dayData.first && dayData.last) {
+          const kwh = dayData.last.kwh - dayData.first.kwh;
+          const money = kwh * electricityRate;
+          const alerts = alertsByDay[dayKey] || 0;
+          
+          reportData.push({
+            date: dayData.date,
+            dateText: formatDateDisplay(dayData.date),
+            kwh: kwh,
+            money: money,
+            alerts: alerts
+          });
+        }
+      }
+      
+      // Sort by date
+      reportData.sort((a, b) => a.date - b.date);
+      
+      // Render table
+      renderReportTable();
+    }
+    
+    async function generateWeeklyReport(startDate, endDate) {
+      // For simplicity, we'll use the daily report data and group by week
+      await generateDailyReport(startDate, endDate);
+      
+      // Group by week
+      const weeklyData = {};
+      
+      reportData.forEach(day => {
+        const weekStart = getWeekStartDate(day.date);
+        const weekKey = formatDateKey(weekStart);
+        
+        if (!weeklyData[weekKey]) {
+          weeklyData[weekKey] = {
+            date: weekStart,
+            dateText: `Tuần ${weekStart.getDate()}/${weekStart.getMonth()+1} - ${formatDateDisplay(getWeekEndDate(weekStart))}`,
+            kwh: 0,
+            money: 0,
+            alerts: 0
+          };
+        }
+        
+        weeklyData[weekKey].kwh += day.kwh;
+        weeklyData[weekKey].money += day.money;
+        weeklyData[weekKey].alerts += day.alerts;
+      });
+      
+      // Convert to array and sort
+      reportData = Object.values(weeklyData).sort((a, b) => a.date - b.date);
+      
+      // Render table
+      renderReportTable();
+    }
+    
+    async function generateMonthlyReport(startDate, endDate) {
+      // For simplicity, we'll use the daily report data and group by month
+      await generateDailyReport(startDate, endDate);
+      
+      // Group by month
+      const monthlyData = {};
+      
+      reportData.forEach(day => {
+        const monthStart = new Date(day.date.getFullYear(), day.date.getMonth(), 1);
+        const monthKey = `${monthStart.getFullYear()}-${monthStart.getMonth()}`;
+        
+        if (!monthlyData[monthKey]) {
+          monthlyData[monthKey] = {
+            date: monthStart,
+            dateText: `Tháng ${monthStart.getMonth()+1}/${monthStart.getFullYear()}`,
+            kwh: 0,
+            money: 0,
+            alerts: 0
+          };
+        }
+        
+        monthlyData[monthKey].kwh += day.kwh;
+        monthlyData[monthKey].money += day.money;
+        monthlyData[monthKey].alerts += day.alerts;
+      });
+      
+      // Convert to array and sort
+      reportData = Object.values(monthlyData).sort((a, b) => a.date - b.date);
+      
+      // Render table
+      renderReportTable();
+    }
+    
+    function renderReportTable() {
+      const tableBody = document.getElementById('reportTableBody');
+      tableBody.innerHTML = '';
+      
+      reportData.forEach(item => {
+        const row = document.createElement('tr');
+        
+        row.innerHTML = `
+          <td>${item.dateText}</td>
+          <td class="text-right">${item.kwh.toFixed(2)}</td>
+          <td class="text-right">${item.money.toLocaleString('vi-VN')}</td>
+          <td class="text-center">
+            ${item.alerts > 0 ? `<span class="badge badge-warning">${item.alerts}</span>` : '0'}
+          </td>
+          <td>
+            ${item.alerts > 0 ? 'Có cảnh báo tiêu thụ cao' : 'Bình thường'}
+          </td>
+        `;
+        
+        tableBody.appendChild(row);
+      });
+    }
+    
+    function updateReportSummary() {
+      if (reportData.length === 0) {
+        document.getElementById('totalDays').textContent = '0';
+        document.getElementById('totalKwh').textContent = '0.00 kWh';
+        document.getElementById('totalMoney').textContent = '0 VND';
+        document.getElementById('totalAlerts').textContent = '0';
+        return;
+      }
+      
+      const totalDays = reportData.length;
+      const totalKwh = reportData.reduce((sum, item) => sum + item.kwh, 0);
+      const totalMoney = reportData.reduce((sum, item) => sum + item.money, 0);
+      const totalAlerts = reportData.reduce((sum, item) => sum + item.alerts, 0);
+      
+      document.getElementById('totalDays').textContent = totalDays;
+      document.getElementById('totalKwh').textContent = totalKwh.toFixed(2) + ' kWh';
+      document.getElementById('totalMoney').textContent = totalMoney.toLocaleString('vi-VN') + ' VND';
+      document.getElementById('totalAlerts').textContent = totalAlerts;
+    }
+    
+    function exportToExcel() {
+      if (reportData.length === 0) {
+        alert('Không có dữ liệu để xuất Excel');
+        return;
+      }
+      
+      // Prepare worksheet data
+      const wsData = [
+        ['BÁO CÁO ĐIỆN NĂNG TIÊU THỤ - POWER AI'],
+        ['Từ ngày:', formatDateDisplay(new Date(document.getElementById('startDate').value))],
+        ['Đến ngày:', formatDateDisplay(new Date(document.getElementById('endDate').value))],
+        ['Loại báo cáo:', currentReportType === 'daily' ? 'Theo ngày' : currentReportType === 'weekly' ? 'Theo tuần' : 'Theo tháng'],
+        [], // Empty row
+        ['Ngày', 'Điện năng tiêu thụ (kWh)', 'Tiền điện (VND)', 'Số lần cảnh báo', 'Ghi chú']
+      ];
+      
+      // Add data rows
+      reportData.forEach(item => {
+        wsData.push([
+          item.dateText,
+          item.kwh.toFixed(2),
+          item.money,
+          item.alerts,
+          item.alerts > 0 ? 'Có cảnh báo tiêu thụ cao' : 'Bình thường'
+        ]);
+      });
+      
+      // Add summary row
+      const totalKwh = reportData.reduce((sum, item) => sum + item.kwh, 0);
+      const totalMoney = reportData.reduce((sum, item) => sum + item.money, 0);
+      const totalAlerts = reportData.reduce((sum, item) => sum + item.alerts, 0);
+      
+      wsData.push([]); // Empty row
+      wsData.push(['TỔNG CỘNG', totalKwh.toFixed(2), totalMoney, totalAlerts, '']);
+      
+      // Create workbook
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      
+      // Set column widths
+      ws['!cols'] = [
+        { wch: 20 }, // Date column
+        { wch: 15 }, // kWh column
+        { wch: 15 }, // Money column
+        { wch: 15 }, // Alerts column
+        { wch: 25 }  // Notes column
+      ];
+      
+      // Merge title row
+      ws['!merges'] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }
+      ];
+      
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(wb, ws, "BaoCaoDienNang");
+      
+      // Generate file name
+      const startDateStr = formatDateKey(new Date(document.getElementById('startDate').value));
+      const endDateStr = formatDateKey(new Date(document.getElementById('endDate').value));
+      const fileName = `BaoCaoDienNang_${startDateStr}_${endDateStr}.xlsx`;
+      
+      // Export to Excel
+      XLSX.writeFile(wb, fileName);
+    }
+    
+    // Helper functions
+    function formatDateKey(date) {
+      return date.toISOString().split('T')[0];
+    }
+    
+    function formatDateDisplay(date) {
+      return date.toLocaleDateString('vi-VN');
+    }
+    
+    function getWeekStartDate(date) {
+      const day = date.getDay();
+      const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+      return new Date(date.setDate(diff));
+    }
+    
+    function getWeekEndDate(startDate) {
+      const endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 6);
+      return endDate;
+    }
+    
+    function logout() {
+      auth.signOut().then(() => {
+        window.location.href = "index.html";
+      });
+    }
+
+    function goToHome() {
+      window.location.href = "home.html";
+    }
+  </script>
+</body>
+</html>
