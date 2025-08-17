@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Liên hệ - Power AI</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+  <style>
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      font-family: 'Arial', sans-serif; 
+    }
+    
+    body { 
+      background: #f5f5f5; 
+      color: #333; 
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #4caefe, #2d87e0);
+      color: white;
+      padding: 12px 5%;
+      display: flex;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      margin-right: auto;
+      cursor: pointer;
+    }
+    
+    .logo i {
+      font-size: 24px;
+      margin-right: 8px;
+    }
+    
+    .logo-text {
+      font-weight: bold;
+      font-size: 18px;
+      white-space: nowrap;
+    }
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+      margin-left: auto;
+    }
+    
+    .search-container {
+      display: flex;
+      align-items: center;
+      margin: 0 15px;
+    }
+    
+    .search-input {
+      width: 0;
+      padding: 0;
+      border-radius: 20px;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      opacity: 0;
+      visibility: hidden;
+    }
+    
+    .search-input.active {
+      width: 200px;
+      padding: 8px 15px;
+      opacity: 1;
+      visibility: visible;
+      margin-right: 10px;
+    }
+    
+    .search-toggle {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: transform 0.2s;
+    }
+    
+    .search-toggle:hover {
+      transform: scale(1.1);
+    }
+    
+    .notification {
+      position: relative;
+      flex-shrink: 0;
+      margin-left: 15px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    
+    .notification:hover {
+      transform: scale(1.1);
+    }
+    
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #ff4757;
+      color: white;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulse 2s infinite;
+    }
+
+    /* Auth buttons */
+    .auth-buttons {
+      display: flex;
+      align-items: center;
+      margin-left: 15px;
+    }
+    
+    .auth-btn {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 14px;
+      margin-left: 10px;
+      cursor: pointer;
+      transition: all 0.3s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 120px;
+    }
+    
+    .auth-btn:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    .auth-icon {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      margin-left: 10px;
+      transition: all 0.3s;
+    }
+    
+    .auth-icon:hover {
+      background: rgba(255,255,255,0.3);
+    }
+    
+    .user-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      margin-left: 10px;
+      cursor: pointer;
+      object-fit: cover;
+    }
+
+    /* Contact section */
+    .contact-container {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    
+    .contact-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    
+    .contact-header h1 {
+      font-size: 32px;
+      color: #2d87e0;
+      margin-bottom: 15px;
+    }
+    
+    .contact-header p {
+      font-size: 16px;
+      color: #666;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    
+    .contact-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+    
+    .contact-card {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+      text-align: center;
+    }
+    
+    .contact-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+    
+    .contact-icon {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 30px;
+      color: white;
+    }
+    
+    .contact-card:nth-child(1) .contact-icon {
+      background: linear-gradient(135deg, #4caefe, #2d87e0);
+    }
+    
+    .contact-card:nth-child(2) .contact-icon {
+      background: linear-gradient(135deg, #00b894, #006266);
+    }
+    
+    .contact-card:nth-child(3) .contact-icon {
+      background: linear-gradient(135deg, #6c5ce7, #341f97);
+    }
+    
+    .contact-card h3 {
+      font-size: 20px;
+      margin-bottom: 15px;
+      color: #333;
+    }
+    
+    .contact-info {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 15px;
+    }
+    
+    .contact-link {
+      display: inline-block;
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #4caefe, #2d87e0);
+      color: white;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: all 0.3s;
+      margin-top: 10px;
+    }
+    
+    .contact-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(76, 174, 254, 0.3);
+    }
+    
+    .zalo-icon {
+      width: 24px;
+      height: 24px;
+      vertical-align: middle;
+      margin-right: 5px;
+    }
+    
+    .map-container {
+      margin-top: 40px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .map-container iframe {
+      width: 100%;
+      height: 400px;
+      border: none;
+    }
+    
+    .copyright {
+      text-align: center;
+      margin-top: 40px;
+      padding: 20px;
+      color: #666;
+      font-size: 14px;
+      border-top: 1px solid #eee;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .contact-header h1 {
+        font-size: 28px;
+      }
+      
+      .contact-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .map-container iframe {
+        height: 300px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .contact-card {
+        padding: 20px;
+      }
+      
+      .contact-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 25px;
+      }
+      
+      .contact-header h1 {
+        font-size: 24px;
+      }
+    }
+
+    /* Các style khác từ file gốc (auth modal, toast, ...) */
+    /* Auth modal */
+    .auth-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .auth-container {
+      background: white;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      padding: 25px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    
+    .auth-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .auth-header h2 {
+      color: #2d87e0;
+      margin-bottom: 10px;
+    }
+    
+    .auth-tabs {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    
+    .auth-tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.3s;
+    }
+    
+    .auth-tab.active {
+      border-bottom: 2px solid #2d87e0;
+      color: #2d87e0;
+      font-weight: bold;
+    }
+    
+    .auth-form {
+      display: none;
+    }
+    
+    .auth-form.active {
+      display: block;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    
+    .auth-submit {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #4caefe, #2d87e0);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: all 0.3s;
+    }
+    
+    .auth-submit:hover {
+      opacity: 0.9;
+    }
+    
+    .auth-footer {
+      text-align: center;
+      margin-top: 15px;
+    }
+    
+    .auth-footer a {
+      color: #2d87e0;
+      text-decoration: none;
+    }
+    
+    .auth-error {
+      color: #ff4757;
+      text-align: center;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    
+    .close-modal {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #777;
+    }
+
+    /* Notification toast */
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: white;
+      border-radius: 10px;
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      z-index: 1001;
+      transform: translateX(150%);
+      transition: transform 0.3s ease-out;
+      max-width: 350px;
+    }
+    
+    .toast.show {
+      transform: translateX(0);
+    }
+    
+    .toast-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 15px;
+      flex-shrink: 0;
+    }
+    
+    .toast-success .toast-icon {
+      background: rgba(46, 213, 115, 0.2);
+      color: #2ed573;
+    }
+    
+    .toast-error .toast-icon {
+      background: rgba(255, 71, 87, 0.2);
+      color: #ff4757;
+    }
+    
+    .toast-content {
+      flex-grow: 1;
+    }
+    
+    .toast-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .toast-message {
+      font-size: 14px;
+      color: #666;
+    }
+    
+    .toast-close {
+      margin-left: 15px;
+      color: #999;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Thanh trên cùng -->
+  <div class="header">
+    <div class="logo" onclick="goToHome()">
+      <i class="fa-solid fa-bolt"></i>
+      <span class="logo-text">Power AI</span>
+    </div>
+    
+    <div class="header-right">
+      <div class="search-container">
+        <input type="text" class="search-input" placeholder="Tìm kiếm dịch vụ...">
+        <button class="search-toggle">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+      
+      <div class="notification">
+        <i class="fa fa-bell"></i>
+        <span class="notification-badge">3</span>
+      </div>
+      
+      <!-- Auth buttons will be inserted here by JavaScript -->
+      <div class="auth-buttons" id="authButtons"></div>
+    </div>
+  </div>
+  
+  <!-- Toast notification -->
+  <div class="toast" id="toast">
+    <div class="toast-icon">
+      <i class="fas" id="toastIcon"></i>
+    </div>
+    <div class="toast-content">
+      <div class="toast-title" id="toastTitle"></div>
+      <div class="toast-message" id="toastMessage"></div>
+    </div>
+    <div class="toast-close" id="toastClose">
+      <i class="fas fa-times"></i>
+    </div>
+  </div>
+
+  <!-- Contact section -->
+  <div class="contact-container">
+    <div class="contact-header">
+      <h1>Liên hệ với chúng tôi</h1>
+      <p>Mọi thắc mắc, góp ý hoặc yêu cầu hỗ trợ, vui lòng liên hệ với chúng tôi qua các phương thức dưới đây</p>
+    </div>
+    
+    <div class="contact-grid">
+      <div class="contact-card">
+        <div class="contact-icon">
+          <i class="fas fa-phone-alt"></i>
+        </div>
+        <h3>Điện thoại</h3>
+        <div class="contact-info">
+          <p>Hotline hỗ trợ 24/7</p>
+          <p><strong>0977 893 086</strong></p>
+        </div>
+        <a href="tel:0977893086" class="contact-link">
+          <i class="fas fa-phone-alt"></i> Gọi ngay
+        </a>
+      </div>
+      
+      <div class="contact-card">
+        <div class="contact-icon">
+          <i class="fas fa-envelope"></i>
+        </div>
+        <h3>Email</h3>
+        <div class="contact-info">
+          <p>Hỗ trợ qua email</p>
+          <p><strong>Dothoinn@gmail.com</strong></p>
+        </div>
+        <a href="mailto:Dothoinn@gmail.com" class="contact-link">
+          <i class="fas fa-envelope"></i> Gửi email
+        </a>
+      </div>
+      
+      <div class="contact-card">
+        <div class="contact-icon">
+          <i class="fas fa-comment-dots"></i>
+        </div>
+        <h3>Zalo</h3>
+        <div class="contact-info">
+          <p>Hỗ trợ qua Zalo</p>
+          <p><strong>0977 893 086</strong></p>
+        </div>
+        <a href="https://zalo.me/0977893086" class="contact-link" target="_blank">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Icon_of_Zalo.svg/2048px-Icon_of_Zalo.svg.png" class="zalo-icon" alt="Zalo">
+          Kết nối Zalo
+        </a>
+      </div>
+    </div>
+    
+    <div class="contact-card">
+      <div class="contact-icon">
+        <i class="fas fa-map-marker-alt"></i>
+      </div>
+      <h3>Địa chỉ liên hệ trực tiếp</h3>
+      <div class="contact-info">
+        <p><strong>Trường THPT Trưng Vương</strong></p>
+        <p>Hưng Yên, Việt Nam</p>
+      </div>
+    </div>
+    
+    <div class="map-container">
+      <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3723.863981044336!2d105.7445984142456!3d21.03813279283348!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135a595ca2b43b1%3A0xef16e039fed3c1b5!2zVHLGsOG7nW5nIFRIVlQgVHLGsOG7nW5nIFbGsMahbmc!5e0!3m2!1svi!2s!4v1620000000000!5m2!1svi!2s" allowfullscreen="" loading="lazy"></iframe>
+    </div>
+    
+    <div class="copyright">
+      <p>© 2023 Power AI. Bản quyền thuộc về Trường THPT Trưng Vương, Hưng Yên.</p>
+      <p>Mọi hình thức sao chép đều vi phạm bản quyền.</p>
+    </div>
+  </div>
+
+  <!-- Auth Modal -->
+  <div class="auth-modal" id="authModal">
+    <div class="auth-container">
+      <span class="close-modal" id="closeModal">&times;</span>
+      <div class="auth-header">
+        <h2 id="authTitle">Đăng nhập</h2>
+      </div>
+      
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="loginTab">Đăng nhập</div>
+        <div class="auth-tab" id="registerTab">Đăng ký</div>
+      </div>
+      
+      <div class="auth-error" id="authError"></div>
+      
+      <form id="loginForm" class="auth-form active">
+        <div class="form-group">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" required>
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Mật khẩu</label>
+          <input type="password" id="loginPassword" required>
+        </div>
+        <button type="submit" class="auth-submit">Đăng nhập</button>
+        <div class="auth-footer">
+          <a href="#" id="forgotPassword">Quên mật khẩu?</a>
+        </div>
+      </form>
+      
+      <form id="registerForm" class="auth-form">
+        <div class="form-group">
+          <label for="registerName">Họ tên</label>
+          <input type="text" id="registerName" required>
+        </div>
+        <div class="form-group">
+          <label for="registerEmail">Email</label>
+          <input type="email" id="registerEmail" required>
+        </div>
+        <div class="form-group">
+          <label for="registerPassword">Mật khẩu</label>
+          <input type="password" id="registerPassword" required minlength="6">
+        </div>
+        <div class="form-group">
+          <label for="registerConfirm">Nhập lại mật khẩu</label>
+          <input type="password" id="registerConfirm" required>
+        </div>
+        <button type="submit" class="auth-submit">Đăng ký</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyBXMptx-Tt3dDLmWgRUgyfh2tW2BRGY1KE",
+      authDomain: "scan-text-eccf7.firebaseapp.com",
+      projectId: "scan-text-eccf7",
+      storageBucket: "scan-text-eccf7.appspot.com",
+      messagingSenderId: "116481688073",
+      appId: "1:116481688073:web:a85a3abcec812a9423eed8",
+      measurementId: "G-CRVRVRXHYF"
+    };
+    
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    
+    // DOM Elements
+    const authButtons = document.getElementById('authButtons');
+    const authModal = document.getElementById('authModal');
+    const closeModal = document.getElementById('closeModal');
+    const loginTab = document.getElementById('loginTab');
+    const registerTab = document.getElementById('registerTab');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const authTitle = document.getElementById('authTitle');
+    const authError = document.getElementById('authError');
+    const forgotPassword = document.getElementById('forgotPassword');
+    const toast = document.getElementById('toast');
+    const toastIcon = document.getElementById('toastIcon');
+    const toastTitle = document.getElementById('toastTitle');
+    const toastMessage = document.getElementById('toastMessage');
+    const toastClose = document.getElementById('toastClose');
+    
+    // Check screen width
+    function isMobile() {
+      return window.innerWidth <= 600;
+    }
+    
+    // Show toast notification
+    function showToast(type, title, message) {
+      // Set toast content
+      toastTitle.textContent = title;
+      toastMessage.textContent = message;
+      
+      // Set icon and style based on type
+      if (type === 'success') {
+        toast.className = 'toast toast-success';
+        toastIcon.className = 'fas fa-check-circle';
+      } else if (type === 'error') {
+        toast.className = 'toast toast-error';
+        toastIcon.className = 'fas fa-exclamation-circle';
+      }
+      
+      // Show toast
+      toast.classList.add('show');
+      
+      // Auto hide after 5 seconds
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 5000);
+    }
+    
+    // Close toast
+    toastClose.addEventListener('click', () => {
+      toast.classList.remove('show');
+    });
+    
+    // Go to home page
+    function goToHome() {
+      window.location.href = 'index.html';
+    }
+    
+    // Auth state observer
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        // User is signed in
+        authButtons.innerHTML = `
+          <button class="auth-btn" onclick="logout()" title="Đăng xuất">
+            <i class="fas fa-sign-out-alt"></i>
+            ${isMobile() ? '' : '<span>Đăng xuất</span>'}
+          </button>
+          ${user.photoURL ? 
+            `<img src="${user.photoURL}" class="user-avatar" title="${user.displayName || user.email}">` : 
+            `<span class="auth-btn" title="${user.displayName || user.email}">
+              <i class="fas fa-user"></i>
+              ${isMobile() ? '' : `<span>${user.displayName || user.email.split('@')[0]}</span>`}
+            </span>`}
+        `;
+        
+        // Show login success toast if just logged in
+        if (sessionStorage.getItem('justLoggedIn') === 'true') {
+          showToast('success', 'Đăng nhập thành công', `Chào mừng ${user.displayName || user.email.split('@')[0]} quay trở lại!`);
+          sessionStorage.removeItem('justLoggedIn');
+        }
+      } else {
+        // User is signed out
+        authButtons.innerHTML = `
+          <button class="auth-btn" onclick="showAuthModal('login')" title="Đăng nhập">
+            <i class="fas fa-sign-in-alt"></i>
+            ${isMobile() ? '' : '<span>Đăng nhập</span>'}
+          </button>
+          <button class="auth-btn" onclick="showAuthModal('register')" title="Đăng ký">
+            <i class="fas fa-user-plus"></i>
+            ${isMobile() ? '' : '<span>Đăng ký</span>'}
+          </button>
+        `;
+        
+        // Show logout success toast if just logged out
+        if (sessionStorage.getItem('justLoggedOut') === 'true') {
+          showToast('success', 'Đăng xuất thành công', 'Bạn đã đăng xuất khỏi hệ thống');
+          sessionStorage.removeItem('justLoggedOut');
+        }
+      }
+    });
+    
+    // Show auth modal
+    function showAuthModal(type) {
+      authModal.style.display = 'flex';
+      if (type === 'login') {
+        switchToLogin();
+      } else {
+        switchToRegister();
+      }
+    }
+    
+    // Close modal
+    closeModal.addEventListener('click', () => {
+      authModal.style.display = 'none';
+      authError.textContent = '';
+    });
+    
+    // Click outside modal to close
+    window.addEventListener('click', (e) => {
+      if (e.target === authModal) {
+        authModal.style.display = 'none';
+        authError.textContent = '';
+      }
+    });
+    
+    // Switch between login and register tabs
+    loginTab.addEventListener('click', switchToLogin);
+    registerTab.addEventListener('click', switchToRegister);
+    
+    function switchToLogin() {
+      loginTab.classList.add('active');
+      registerTab.classList.remove('active');
+      loginForm.classList.add('active');
+      registerForm.classList.remove('active');
+      authTitle.textContent = 'Đăng nhập';
+    }
+    
+    function switchToRegister() {
+      registerTab.classList.add('active');
+      loginTab.classList.remove('active');
+      registerForm.classList.add('active');
+      loginForm.classList.remove('active');
+      authTitle.textContent = 'Đăng ký';
+    }
+    
+    // Login form submission
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      
+      auth.signInWithEmailAndPassword(email, password)
+        .then(() => {
+          // Set flag to show login success toast
+          sessionStorage.setItem('justLoggedIn', 'true');
+          authModal.style.display = 'none';
+          authError.textContent = '';
+          location.reload();
+        })
+        .catch(error => {
+          authError.textContent = getErrorMessage(error.code);
+        });
+    });
+    
+    // Register form submission
+    registerForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('registerName').value;
+      const email = document.getElementById('registerEmail').value;
+      const password = document.getElementById('registerPassword').value;
+      const confirmPassword = document.getElementById('registerConfirm').value;
+      
+      if (password !== confirmPassword) {
+        authError.textContent = 'Mật khẩu không khớp!';
+        return;
+      }
+      
+      auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          // Update user profile with name
+          return userCredential.user.updateProfile({
+            displayName: name
+          });
+        })
+        .then(() => {
+          // Set flag to show login success toast
+          sessionStorage.setItem('justLoggedIn', 'true');
+          authModal.style.display = 'none';
+          authError.textContent = '';
+          location.reload();
+        })
+        .catch(error => {
+          authError.textContent = getErrorMessage(error.code);
+        });
+    });
+    
+    // Forgot password
+    forgotPassword.addEventListener('click', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      
+      if (!email) {
+        authError.textContent = 'Vui lòng nhập email của bạn';
+        return;
+      }
+      
+      auth.sendPasswordResetEmail(email)
+        .then(() => {
+          authError.textContent = 'Email đặt lại mật khẩu đã được gửi!';
+        })
+        .catch(error => {
+          authError.textContent = getErrorMessage(error.code);
+        });
+    });
+    
+    // Logout function
+    function logout() {
+      auth.signOut().then(() => {
+        // Set flag to show logout success toast
+        sessionStorage.setItem('justLoggedOut', 'true');
+      }).catch(error => {
+        console.error('Logout error:', error);
+      });
+    }
+    
+    // Get user-friendly error messages
+    function getErrorMessage(errorCode) {
+      switch(errorCode) {
+        case 'auth/invalid-email':
+          return 'Email không hợp lệ';
+        case 'auth/user-disabled':
+          return 'Tài khoản đã bị vô hiệu hóa';
+        case 'auth/user-not-found':
+          return 'Không tìm thấy tài khoản';
+        case 'auth/wrong-password':
+          return 'Mật khẩu không đúng';
+        case 'auth/email-already-in-use':
+          return 'Email đã được sử dụng';
+        case 'auth/operation-not-allowed':
+          return 'Hoạt động không được cho phép';
+        case 'auth/weak-password':
+          return 'Mật khẩu quá yếu (tối thiểu 6 ký tự)';
+        case 'auth/too-many-requests':
+          return 'Quá nhiều yêu cầu. Vui lòng thử lại sau';
+        default:
+          return 'Đã xảy ra lỗi. Vui lòng thử lại';
+      }
+    }
+    
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      auth.onAuthStateChanged(user => {
+        if (user) {
+          // Update logout button
+          const logoutBtn = document.querySelector('.auth-btn');
+          if (logoutBtn) {
+            logoutBtn.innerHTML = `
+              <i class="fas fa-sign-out-alt"></i>
+              ${isMobile() ? '' : '<span>Đăng xuất</span>'}
+            `;
+          }
+          
+          // Update user info
+          const userInfo = document.querySelector('.user-avatar, .auth-btn:last-child');
+          if (userInfo) {
+            if (user.photoURL) {
+              userInfo.title = user.displayName || user.email;
+            } else {
+              userInfo.innerHTML = `
+                <i class="fas fa-user"></i>
+                ${isMobile() ? '' : `<span>${user.displayName || user.email.split('@')[0]}</span>`}
+              `;
+              userInfo.title = user.displayName || user.email;
+            }
+          }
+        } else {
+          // Update login/register buttons
+          const authBtns = document.querySelectorAll('.auth-btn');
+          if (authBtns.length === 2) {
+            authBtns[0].innerHTML = `
+              <i class="fas fa-sign-in-alt"></i>
+              ${isMobile() ? '' : '<span>Đăng nhập</span>'}
+            `;
+            authBtns[1].innerHTML = `
+              <i class="fas fa-user-plus"></i>
+              ${isMobile() ? '' : '<span>Đăng ký</span>'}
+            `;
+          }
+        }
+      });
+    });
+    
+    // Search functionality
+    const searchToggle = document.querySelector('.search-toggle');
+    const searchInput = document.querySelector('.search-input');
+    
+    searchToggle.addEventListener('click', function(e) {
+      e.stopPropagation();
+      searchInput.classList.toggle('active');
+      if (searchInput.classList.contains('active')) {
+        searchInput.focus();
+      }
+    });
+    
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.search-container') && searchInput.classList.contains('active')) {
+        searchInput.classList.remove('active');
+      }
+    });
+  </script>
+
+</body>
+</html>
