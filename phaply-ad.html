@@ -3,14 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quản lý văn bản - Power AI</title>
+  <title>Quản trị Văn bản pháp lý - Power AI</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Quill Editor -->
   <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
   <style>
     * { 
       box-sizing: border-box; 
@@ -187,72 +182,11 @@
       object-fit: cover;
     }
 
-    /* Admin sidebar */
-    .admin-container {
-      display: flex;
-      min-height: calc(100vh - 60px);
-    }
-    
-    .sidebar {
-      width: 250px;
-      background: white;
-      box-shadow: 2px 0 10px rgba(0,0,0,0.05);
-      padding: 20px 0;
-      position: sticky;
-      top: 60px;
-      height: calc(100vh - 60px);
-    }
-    
-    .sidebar-header {
-      padding: 0 20px 20px;
-      border-bottom: 1px solid #eee;
-      margin-bottom: 20px;
-    }
-    
-    .sidebar-title {
-      font-size: 18px;
-      font-weight: bold;
-      color: #2d87e0;
-    }
-    
-    .sidebar-subtitle {
-      font-size: 14px;
-      color: #777;
-    }
-    
-    .sidebar-menu {
-      list-style: none;
-    }
-    
-    .sidebar-item {
-      margin-bottom: 5px;
-    }
-    
-    .sidebar-link {
-      display: flex;
-      align-items: center;
-      padding: 12px 20px;
-      color: #555;
-      text-decoration: none;
-      transition: all 0.3s;
-    }
-    
-    .sidebar-link:hover, .sidebar-link.active {
-      background: rgba(76, 174, 254, 0.1);
-      color: #2d87e0;
-      border-left: 3px solid #2d87e0;
-    }
-    
-    .sidebar-link i {
-      margin-right: 10px;
-      width: 20px;
-      text-align: center;
-    }
-    
-    /* Admin content */
-    .admin-content {
-      flex: 1;
-      padding: 30px;
+    /* Main content */
+    .container {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 20px;
     }
     
     .admin-header {
@@ -262,59 +196,181 @@
       margin-bottom: 30px;
     }
     
-    .admin-title {
-      font-size: 24px;
-      font-weight: bold;
-      color: #333;
+    .page-title {
+      font-size: 28px;
+      color: #2d87e0;
+      position: relative;
+      padding-left: 15px;
     }
     
-    .admin-actions {
-      display: flex;
-      gap: 10px;
+    .page-title::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: linear-gradient(to bottom, #4caefe, #2d87e0);
+      border-radius: 4px;
     }
     
     .btn {
-      padding: 10px 20px;
-      border-radius: 5px;
+      background: linear-gradient(135deg, #4caefe, #2d87e0);
+      color: white;
       border: none;
+      border-radius: 30px;
+      padding: 10px 20px;
+      font-size: 16px;
       cursor: pointer;
-      font-weight: 500;
       transition: all 0.3s;
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      justify-content: center;
     }
     
     .btn i {
       margin-right: 8px;
     }
     
-    .btn-primary {
-      background: linear-gradient(135deg, #4caefe, #2d87e0);
-      color: white;
-    }
-    
-    .btn-primary:hover {
+    .btn:hover {
       opacity: 0.9;
-      box-shadow: 0 3px 10px rgba(76, 174, 254, 0.3);
+      transform: translateY(-2px);
     }
     
     .btn-danger {
       background: linear-gradient(135deg, #ff7675, #d63031);
-      color: white;
     }
     
-    .btn-danger:hover {
-      opacity: 0.9;
-      box-shadow: 0 3px 10px rgba(255, 118, 117, 0.3);
+    .btn-success {
+      background: linear-gradient(135deg, #55efc4, #00b894);
     }
     
-    /* Document form */
-    .document-form {
+    .documents-table {
+      width: 100%;
+      border-collapse: collapse;
       background: white;
       border-radius: 10px;
-      padding: 30px;
-      box-shadow: 0 3px 15px rgba(0,0,0,0.05);
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .documents-table th, 
+    .documents-table td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .documents-table th {
+      background: #f8f9fa;
+      font-weight: bold;
+      color: #555;
+    }
+    
+    .documents-table tr:hover {
+      background: #f8f9fa;
+    }
+    
+    .documents-table .actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .action-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .edit-btn {
+      background: rgba(76, 174, 254, 0.1);
+      color: #4caefe;
+    }
+    
+    .edit-btn:hover {
+      background: rgba(76, 174, 254, 0.2);
+    }
+    
+    .delete-btn {
+      background: rgba(255, 71, 87, 0.1);
+      color: #ff4757;
+    }
+    
+    .delete-btn:hover {
+      background: rgba(255, 71, 87, 0.2);
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 50px 20px;
+      color: #777;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .empty-state i {
+      font-size: 50px;
+      margin-bottom: 20px;
+      color: #ddd;
+    }
+    
+    .empty-state h3 {
+      font-size: 20px;
+      margin-bottom: 10px;
+      color: #555;
+    }
+    
+    /* Document modal */
+    .document-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    
+    .document-modal-content {
+      background: white;
+      border-radius: 10px;
+      max-width: 800px;
+      margin: 30px auto;
+      box-shadow: 0 5px 30px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+    
+    .document-modal-header {
+      padding: 20px;
+      border-bottom: 1px solid #eee;
+      position: relative;
+    }
+    
+    .document-modal-title {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .close-modal {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #777;
+    }
+    
+    .document-modal-body {
+      padding: 20px;
     }
     
     .form-group {
@@ -324,59 +380,37 @@
     .form-group label {
       display: block;
       margin-bottom: 8px;
-      font-weight: 500;
+      font-weight: bold;
       color: #555;
     }
     
-    .form-control {
+    .form-group input, 
+    .form-group textarea {
       width: 100%;
       padding: 12px 15px;
       border: 1px solid #ddd;
       border-radius: 5px;
       font-size: 16px;
-      transition: all 0.3s;
     }
     
-    .form-control:focus {
-      border-color: #4caefe;
-      box-shadow: 0 0 0 3px rgba(76, 174, 254, 0.2);
-      outline: none;
+    .form-group textarea {
+      min-height: 100px;
+      resize: vertical;
     }
     
-    /* Quill editor */
-    .editor-container {
+    #editor {
       height: 300px;
-      margin-bottom: 20px;
-    }
-    
-    /* Preview section */
-    .preview-section {
-      background: #f9f9f9;
-      border-radius: 8px;
-      padding: 20px;
-      margin-top: 30px;
-      border: 1px dashed #ddd;
-    }
-    
-    .preview-title {
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 15px;
-      color: #555;
-      display: flex;
-      align-items: center;
-    }
-    
-    .preview-title i {
-      margin-right: 10px;
-      color: #2d87e0;
-    }
-    
-    .preview-content {
       background: white;
-      padding: 20px;
+      border: 1px solid #ddd;
       border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 20px;
+      border-top: 1px solid #eee;
     }
     
     /* Toast notification */
@@ -441,56 +475,57 @@
       cursor: pointer;
       flex-shrink: 0;
     }
-
-    /* Responsive */
-    @media (max-width: 992px) {
-      .sidebar {
-        width: 200px;
-      }
+    
+    /* Confirmation modal */
+    .confirmation-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
     }
     
+    .confirmation-content {
+      background: white;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      padding: 25px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    
+    .confirmation-title {
+      font-size: 20px;
+      margin-bottom: 15px;
+      color: #333;
+    }
+    
+    .confirmation-message {
+      margin-bottom: 25px;
+      color: #666;
+    }
+    
+    .confirmation-actions {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+    
+    /* Responsive */
     @media (max-width: 768px) {
-      .admin-container {
-        flex-direction: column;
-      }
-      
-      .sidebar {
-        width: 100%;
-        height: auto;
-        position: static;
-        padding: 15px 0;
-      }
-      
-      .sidebar-header {
-        padding: 0 15px 15px;
-      }
-      
-      .sidebar-menu {
-        display: flex;
+      .documents-table {
+        display: block;
         overflow-x: auto;
-        padding: 0 10px;
       }
       
-      .sidebar-item {
-        flex-shrink: 0;
-        margin-bottom: 0;
-        margin-right: 5px;
-      }
-      
-      .sidebar-link {
-        padding: 10px 15px;
-        border-radius: 20px;
-        border-left: none;
-      }
-      
-      .sidebar-link:hover, .sidebar-link.active {
-        background: rgba(76, 174, 254, 0.1);
-        color: #2d87e0;
-        border-left: none;
-      }
-      
-      .admin-content {
-        padding: 20px;
+      .page-title {
+        font-size: 24px;
       }
       
       .admin-header {
@@ -500,55 +535,6 @@
       }
     }
     
-    @media (max-width: 600px) {
-      .auth-btn span {
-        display: none;
-      }
-      
-      .auth-btn i {
-        margin-right: 0;
-      }
-      
-      .auth-btn {
-        width: 36px;
-        height: 36px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        border-radius: 50%;
-      }
-      
-      .search-input.active {
-        width: 150px;
-      }
-      
-      .header {
-        padding: 12px 3%;
-      }
-      
-      .search-container {
-        margin: 0 10px;
-      }
-      
-      .notification {
-        margin-left: 10px;
-      }
-      
-      .auth-buttons {
-        margin-left: 10px;
-      }
-      
-      .document-form {
-        padding: 20px;
-      }
-      
-      .btn {
-        padding: 8px 15px;
-        font-size: 14px;
-      }
-    }
-
     @keyframes pulse {
       0% { transform: scale(1); }
       50% { transform: scale(1.2); }
@@ -581,93 +567,82 @@
       <div class="auth-buttons" id="authButtons"></div>
     </div>
   </div>
-
-  <!-- Admin container -->
-  <div class="admin-container">
-    <!-- Sidebar -->
-    <div class="sidebar">
-      <div class="sidebar-header">
-        <div class="sidebar-title">Quản trị viên</div>
-        <div class="sidebar-subtitle" id="adminEmail">Đang tải...</div>
-      </div>
-      
-      <ul class="sidebar-menu">
-        <li class="sidebar-item">
-          <a href="phaply-ad.html" class="sidebar-link active">
-            <i class="fas fa-file-alt"></i>
-            <span>Văn bản pháp lý</span>
-          </a>
-        </li>
-        <li class="sidebar-item">
-          <a href="tintuc-ad.html" class="sidebar-link">
-            <i class="fas fa-newspaper"></i>
-            <span>Tin tức</span>
-          </a>
-        </li>
-        <li class="sidebar-item">
-          <a href="#" class="sidebar-link">
-            <i class="fas fa-chart-line"></i>
-            <span>Thống kê</span>
-          </a>
-        </li>
-        <li class="sidebar-item">
-          <a href="#" class="sidebar-link">
-            <i class="fas fa-users"></i>
-            <span>Người dùng</span>
-          </a>
-        </li>
-        <li class="sidebar-item">
-          <a href="#" class="sidebar-link">
-            <i class="fas fa-cog"></i>
-            <span>Cài đặt</span>
-          </a>
-        </li>
-      </ul>
+  
+  <!-- Main content -->
+  <div class="container">
+    <div class="admin-header">
+      <h1 class="page-title">Quản trị Văn bản pháp lý</h1>
+      <button class="btn" id="addDocumentBtn">
+        <i class="fas fa-plus"></i> Thêm văn bản
+      </button>
     </div>
     
-    <!-- Main content -->
-    <div class="admin-content">
-      <div class="admin-header">
-        <h1 class="admin-title">Thêm văn bản pháp lý mới</h1>
-        <div class="admin-actions">
-          <button class="btn btn-danger" id="cancelBtn">
-            <i class="fas fa-times"></i> Hủy bỏ
-          </button>
-          <button class="btn btn-primary" id="saveBtn">
-            <i class="fas fa-save"></i> Lưu văn bản
-          </button>
-        </div>
-      </div>
+    <div id="documentsTableContainer">
+      <table class="documents-table">
+        <thead>
+          <tr>
+            <th>Tiêu đề</th>
+            <th>Tác giả</th>
+            <th>Ngày đăng</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="documentsTableBody">
+          <!-- Documents will be loaded here -->
+        </tbody>
+      </table>
       
-      <div class="document-form">
-        <div class="form-group">
-          <label for="documentTitle">Tiêu đề văn bản</label>
-          <input type="text" id="documentTitle" class="form-control" placeholder="Nhập tiêu đề văn bản...">
-        </div>
-        
-        <div class="form-group">
-          <label for="documentAuthor">Tác giả</label>
-          <input type="text" id="documentAuthor" class="form-control" placeholder="Nhập tên tác giả...">
-        </div>
-        
-        <div class="form-group">
-          <label>Nội dung văn bản</label>
-          <div id="editor" class="editor-container"></div>
-        </div>
-        
-        <div class="preview-section">
-          <div class="preview-title">
-            <i class="fas fa-eye"></i>
-            <span>Xem trước nội dung</span>
-          </div>
-          <div class="preview-content" id="previewContent">
-            Nội dung xem trước sẽ hiển thị ở đây...
-          </div>
-        </div>
+      <div class="empty-state" id="emptyState" style="display: none;">
+        <i class="fas fa-file-alt"></i>
+        <h3>Không có văn bản nào</h3>
+        <p>Hãy thêm văn bản đầu tiên bằng cách nhấn nút "Thêm văn bản"</p>
       </div>
     </div>
   </div>
-
+  
+  <!-- Document modal -->
+  <div class="document-modal" id="documentModal">
+    <div class="document-modal-content">
+      <div class="document-modal-header">
+        <h2 class="document-modal-title" id="modalTitle">Thêm văn bản mới</h2>
+        <span class="close-modal" id="closeModal">&times;</span>
+      </div>
+      <div class="document-modal-body">
+        <form id="documentForm">
+          <input type="hidden" id="documentId">
+          <div class="form-group">
+            <label for="documentTitle">Tiêu đề văn bản</label>
+            <input type="text" id="documentTitle" required>
+          </div>
+          <div class="form-group">
+            <label for="documentAuthor">Tác giả</label>
+            <input type="text" id="documentAuthor" required>
+          </div>
+          <div class="form-group">
+            <label for="documentContent">Nội dung</label>
+            <div id="editor"></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-danger" id="cancelBtn">Hủy bỏ</button>
+        <button class="btn btn-success" id="saveBtn">Lưu lại</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Confirmation modal -->
+  <div class="confirmation-modal" id="confirmationModal">
+    <div class="confirmation-content">
+      <h3 class="confirmation-title">Xác nhận xóa</h3>
+      <p class="confirmation-message">Bạn có chắc chắn muốn xóa văn bản này? Hành động này không thể hoàn tác.</p>
+      <div class="confirmation-actions">
+        <button class="btn" id="confirmCancelBtn">Hủy bỏ</button>
+        <button class="btn btn-danger" id="confirmDeleteBtn">Xóa</button>
+      </div>
+    </div>
+  </div>
+  
   <!-- Toast notification -->
   <div class="toast" id="toast">
     <div class="toast-icon">
@@ -681,12 +656,24 @@
       <i class="fas fa-times"></i>
     </div>
   </div>
+  
+  <!-- Footer -->
+  <div class="footer">
+    <a href="tel:1900545454" class="hotline">
+      <i class="fas fa-phone-alt"></i> Liên hệ: 0977893086
+    </a>
+  </div>
 
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
   <!-- Quill JS -->
   <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+  
   <script>
-    // Initialize Firebase Auth
-    const firebaseAuthConfig = {
+    // Initialize Firebase
+    const firebaseConfig = {
       apiKey: "AIzaSyBXMptx-Tt3dDLmWgRUgyfh2tW2BRGY1KE",
       authDomain: "scan-text-eccf7.firebaseapp.com",
       projectId: "scan-text-eccf7",
@@ -696,8 +683,12 @@
       measurementId: "G-CRVRVRXHYF"
     };
     
-    // Initialize Firebase Database
-    const firebaseDbConfig = {
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    
+    // Initialize Firestore for documents
+    const documentsFirebaseConfig = {
       apiKey: "AIzaSyBi-bivEL4ZRlXnJNdI2GTxZicbqpFTNfU",
       authDomain: "pltt-39da9.firebaseapp.com",
       projectId: "pltt-39da9",
@@ -707,27 +698,8 @@
       measurementId: "G-KQ51HV803Z"
     };
     
-    // Initialize Firebase Auth
-    const authApp = firebase.initializeApp(firebaseAuthConfig, "auth");
-    const auth = firebase.auth(authApp);
-    
-    // Initialize Firebase Database
-    const dbApp = firebase.initializeApp(firebaseDbConfig, "db");
-    const db = firebase.firestore(dbApp);
-    
-    // DOM Elements
-    const authButtons = document.getElementById('authButtons');
-    const adminEmail = document.getElementById('adminEmail');
-    const documentTitle = document.getElementById('documentTitle');
-    const documentAuthor = document.getElementById('documentAuthor');
-    const saveBtn = document.getElementById('saveBtn');
-    const cancelBtn = document.getElementById('cancelBtn');
-    const previewContent = document.getElementById('previewContent');
-    const toast = document.getElementById('toast');
-    const toastIcon = document.getElementById('toastIcon');
-    const toastTitle = document.getElementById('toastTitle');
-    const toastMessage = document.getElementById('toastMessage');
-    const toastClose = document.getElementById('toastClose');
+    const documentsApp = firebase.initializeApp(documentsFirebaseConfig, "documents");
+    const db = firebase.firestore(documentsApp);
     
     // Initialize Quill editor
     const quill = new Quill('#editor', {
@@ -737,20 +709,55 @@
           [{ 'header': [1, 2, 3, false] }],
           ['bold', 'italic', 'underline', 'strike'],
           [{ 'color': [] }, { 'background': [] }],
-          [{ 'align': [] }],
-          ['blockquote', 'code-block'],
           [{ 'list': 'ordered'}, { 'list': 'bullet' }],
           ['link', 'image'],
           ['clean']
         ]
       },
-      placeholder: 'Nhập nội dung văn bản pháp lý...'
+      placeholder: 'Nhập nội dung văn bản...'
     });
     
-    // Update preview when editor content changes
-    quill.on('text-change', function() {
-      previewContent.innerHTML = quill.root.innerHTML;
-    });
+    // DOM Elements
+    const authButtons = document.getElementById('authButtons');
+    const documentsTableBody = document.getElementById('documentsTableBody');
+    const emptyState = document.getElementById('emptyState');
+    const addDocumentBtn = document.getElementById('addDocumentBtn');
+    const documentModal = document.getElementById('documentModal');
+    const closeModal = document.getElementById('closeModal');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const documentForm = document.getElementById('documentForm');
+    const documentId = document.getElementById('documentId');
+    const documentTitle = document.getElementById('documentTitle');
+    const documentAuthor = document.getElementById('documentAuthor');
+    const confirmationModal = document.getElementById('confirmationModal');
+    const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    const toast = document.getElementById('toast');
+    const toastIcon = document.getElementById('toastIcon');
+    const toastTitle = document.getElementById('toastTitle');
+    const toastMessage = document.getElementById('toastMessage');
+    const toastClose = document.getElementById('toastClose');
+    
+    // Variables
+    let currentDocumentId = null;
+    let documents = [];
+    
+    // Check screen width
+    function isMobile() {
+      return window.innerWidth <= 600;
+    }
+    
+    // Go to home page
+    function goToHome() {
+      window.location.href = 'index.html';
+    }
+    
+    // Format date
+    function formatDate(date) {
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      return new Date(date).toLocaleDateString('vi-VN', options);
+    }
     
     // Show toast notification
     function showToast(type, title, message) {
@@ -781,121 +788,256 @@
       toast.classList.remove('show');
     });
     
-    // Go to home page
-    function goToHome() {
-      window.location.href = 'index.html';
+    // Load documents from Firestore
+    function loadDocuments() {
+      db.collection('legal-documents').orderBy('createdAt', 'desc').get()
+        .then((querySnapshot) => {
+          documentsTableBody.innerHTML = '';
+          documents = [];
+          
+          if (querySnapshot.empty) {
+            emptyState.style.display = 'block';
+            return;
+          }
+          
+          emptyState.style.display = 'none';
+          
+          querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            documents.push({
+              id: doc.id,
+              ...data
+            });
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${data.title}</td>
+              <td>${data.author}</td>
+              <td>${formatDate(data.createdAt.toDate())}</td>
+              <td>
+                <div class="actions">
+                  <div class="action-btn edit-btn" data-id="${doc.id}">
+                    <i class="fas fa-edit"></i>
+                  </div>
+                  <div class="action-btn delete-btn" data-id="${doc.id}">
+                    <i class="fas fa-trash"></i>
+                  </div>
+                </div>
+              </td>
+            `;
+            
+            documentsTableBody.appendChild(row);
+          });
+          
+          // Add event listeners to edit and delete buttons
+          document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const id = btn.getAttribute('data-id');
+              editDocument(id);
+            });
+          });
+          
+          document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const id = btn.getAttribute('data-id');
+              confirmDeleteDocument(id);
+            });
+          });
+        })
+        .catch((error) => {
+          console.error("Error loading documents: ", error);
+          showToast('error', 'Lỗi', 'Không thể tải danh sách văn bản');
+        });
+    }
+    
+    // Add new document
+    function addDocument() {
+      currentDocumentId = null;
+      documentForm.reset();
+      quill.setContents([]);
+      documentTitle.focus();
+      documentModal.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+    
+    // Edit document
+    function editDocument(id) {
+      const doc = documents.find(d => d.id === id);
+      if (!doc) return;
+      
+      currentDocumentId = id;
+      documentId.value = id;
+      documentTitle.value = doc.title;
+      documentAuthor.value = doc.author;
+      
+      try {
+        const content = JSON.parse(doc.content);
+        quill.setContents(content);
+      } catch (e) {
+        quill.setText(doc.content);
+      }
+      
+      documentModal.style.display = 'block';
+      document.body.style.overflow = 'hidden';
     }
     
     // Save document
-    saveBtn.addEventListener('click', async () => {
+    function saveDocument() {
       const title = documentTitle.value.trim();
       const author = documentAuthor.value.trim();
-      const content = quill.root.innerHTML;
-      const textContent = quill.getText();
+      const content = JSON.stringify(quill.getContents());
+      const htmlContent = quill.root.innerHTML;
       
-      if (!title) {
-        showToast('error', 'Lỗi', 'Vui lòng nhập tiêu đề văn bản');
-        documentTitle.focus();
+      if (!title || !author || quill.getText().trim().length < 10) {
+        showToast('error', 'Lỗi', 'Vui lòng điền đầy đủ thông tin và nội dung');
         return;
       }
       
-      if (!author) {
-        showToast('error', 'Lỗi', 'Vui lòng nhập tên tác giả');
-        documentAuthor.focus();
-        return;
-      }
+      // Generate keywords for search
+      const keywords = generateKeywords(title);
       
-      if (!textContent.trim()) {
-        showToast('error', 'Lỗi', 'Vui lòng nhập nội dung văn bản');
-        return;
-      }
+      const documentData = {
+        title,
+        author,
+        content,
+        htmlContent,
+        keywords,
+        createdAt: currentDocumentId ? firebase.firestore.FieldValue.serverTimestamp() : firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
       
-      try {
-        // Generate keywords for search
-        const keywords = generateKeywords(title);
-        
-        // Save to Firestore
-        await db.collection('legalDocuments').add({
-          title,
-          author,
-          content,
-          keywords,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        showToast('success', 'Thành công', 'Văn bản đã được lưu thành công');
-        
-        // Reset form
-        documentTitle.value = '';
-        documentAuthor.value = '';
-        quill.root.innerHTML = '';
-        previewContent.innerHTML = 'Nội dung xem trước sẽ hiển thị ở đây...';
-      } catch (error) {
-        console.error('Error saving document:', error);
-        showToast('error', 'Lỗi', 'Đã xảy ra lỗi khi lưu văn bản');
+      if (currentDocumentId) {
+        // Update existing document
+        db.collection('legal-documents').doc(currentDocumentId).update(documentData)
+          .then(() => {
+            showToast('success', 'Thành công', 'Cập nhật văn bản thành công');
+            closeDocumentModal();
+            loadDocuments();
+          })
+          .catch((error) => {
+            console.error("Error updating document: ", error);
+            showToast('error', 'Lỗi', 'Cập nhật văn bản thất bại');
+          });
+      } else {
+        // Add new document
+        db.collection('legal-documents').add(documentData)
+          .then(() => {
+            showToast('success', 'Thành công', 'Thêm văn bản thành công');
+            closeDocumentModal();
+            loadDocuments();
+          })
+          .catch((error) => {
+            console.error("Error adding document: ", error);
+            showToast('error', 'Lỗi', 'Thêm văn bản thất bại');
+          });
       }
-    });
+    }
     
-    // Generate search keywords
-    function generateKeywords(text) {
-      const words = text.toLowerCase().split(/\s+/);
+    // Generate search keywords from title
+    function generateKeywords(title) {
+      const words = title.toLowerCase().split(/\s+/);
       const keywords = new Set();
       
-      // Add full phrases
-      for (let i = 0; i < words.length; i++) {
-        let phrase = '';
-        for (let j = i; j < Math.min(i + 3, words.length); j++) {
-          phrase += (j > i ? ' ' : '') + words[j];
-          keywords.add(phrase);
-        }
-      }
-      
-      // Add individual words
+      // Add all words
       words.forEach(word => {
         if (word.length > 2) {
           keywords.add(word);
         }
       });
       
+      // Add all possible prefixes for each word
+      words.forEach(word => {
+        for (let i = 3; i <= word.length; i++) {
+          keywords.add(word.substring(0, i));
+        }
+      });
+      
       return Array.from(keywords);
     }
     
-    // Cancel button
-    cancelBtn.addEventListener('click', () => {
-      if (documentTitle.value || documentAuthor.value || quill.getText().trim()) {
-        if (confirm('Bạn có chắc muốn hủy bỏ? Tất cả thay đổi sẽ không được lưu.')) {
-          documentTitle.value = '';
-          documentAuthor.value = '';
-          quill.root.innerHTML = '';
-          previewContent.innerHTML = 'Nội dung xem trước sẽ hiển thị ở đây...';
-        }
-      } else {
-        window.location.href = 'phaply.html';
+    // Confirm delete document
+    function confirmDeleteDocument(id) {
+      currentDocumentId = id;
+      confirmationModal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+    
+    // Delete document
+    function deleteDocument() {
+      db.collection('legal-documents').doc(currentDocumentId).delete()
+        .then(() => {
+          showToast('success', 'Thành công', 'Xóa văn bản thành công');
+          closeConfirmationModal();
+          loadDocuments();
+        })
+        .catch((error) => {
+          console.error("Error deleting document: ", error);
+          showToast('error', 'Lỗi', 'Xóa văn bản thất bại');
+        });
+    }
+    
+    // Close document modal
+    function closeDocumentModal() {
+      documentModal.style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
+    
+    // Close confirmation modal
+    function closeConfirmationModal() {
+      confirmationModal.style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
+    
+    // Click outside modal to close
+    window.addEventListener('click', (e) => {
+      if (e.target === documentModal) {
+        closeDocumentModal();
+      }
+      if (e.target === confirmationModal) {
+        closeConfirmationModal();
       }
     });
+    
+    // Event listeners
+    addDocumentBtn.addEventListener('click', addDocument);
+    closeModal.addEventListener('click', closeDocumentModal);
+    cancelBtn.addEventListener('click', closeDocumentModal);
+    saveBtn.addEventListener('click', saveDocument);
+    confirmCancelBtn.addEventListener('click', closeConfirmationModal);
+    confirmDeleteBtn.addEventListener('click', deleteDocument);
     
     // Auth state observer
     auth.onAuthStateChanged(user => {
       if (user) {
         // User is signed in
-        adminEmail.textContent = user.email;
-        
         authButtons.innerHTML = `
           <button class="auth-btn" onclick="logout()" title="Đăng xuất">
             <i class="fas fa-sign-out-alt"></i>
-            <span>Đăng xuất</span>
+            ${isMobile() ? '' : '<span>Đăng xuất</span>'}
           </button>
           ${user.photoURL ? 
             `<img src="${user.photoURL}" class="user-avatar" title="${user.displayName || user.email}">` : 
             `<span class="auth-btn" title="${user.displayName || user.email}">
               <i class="fas fa-user"></i>
-              <span>${user.displayName || user.email.split('@')[0]}</span>
+              ${isMobile() ? '' : `<span>${user.displayName || user.email.split('@')[0]}</span>`}
             </span>`}
         `;
+        
+        // Check if user is admin
+        if (user.email !== 'admin@example.com') {
+          showToast('error', 'Truy cập bị từ chối', 'Bạn không có quyền truy cập trang quản trị');
+          setTimeout(() => {
+            window.location.href = 'phaply.html';
+          }, 2000);
+        }
       } else {
-        // User is signed out - redirect to login
-        window.location.href = 'login.html';
+        // User is signed out
+        showToast('error', 'Yêu cầu đăng nhập', 'Vui lòng đăng nhập để tiếp tục');
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 2000);
       }
     });
     
@@ -905,9 +1047,13 @@
         window.location.href = 'index.html';
       }).catch(error => {
         console.error('Logout error:', error);
-        showToast('error', 'Lỗi', 'Đăng xuất không thành công');
       });
     }
+    
+    // Load documents on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      loadDocuments();
+    });
   </script>
 </body>
 </html>
