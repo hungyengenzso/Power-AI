@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Power AI - Văn bản Pháp lý</title>
+  <title>Văn bản pháp lý - Power AI</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
@@ -102,6 +102,35 @@
       transform: scale(1.1);
     }
     
+    .notification {
+      position: relative;
+      flex-shrink: 0;
+      margin-left: 15px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    
+    .notification:hover {
+      transform: scale(1.1);
+    }
+    
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #ff4757;
+      color: white;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulse 2s infinite;
+    }
+
+    /* Auth buttons */
     .auth-buttons {
       display: flex;
       align-items: center;
@@ -128,7 +157,35 @@
       background: rgba(255,255,255,0.3);
     }
 
-    /* Main Container */
+    .auth-icon {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      margin-left: 10px;
+      transition: all 0.3s;
+    }
+    
+    .auth-icon:hover {
+      background: rgba(255,255,255,0.3);
+    }
+    
+    .user-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      margin-left: 10px;
+      cursor: pointer;
+      object-fit: cover;
+    }
+
+    /* Main content */
     .main-container {
       max-width: 1200px;
       margin: 30px auto;
@@ -136,192 +193,172 @@
     }
     
     .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 30px;
-      text-align: center;
     }
     
     .page-title {
       font-size: 28px;
-      font-weight: bold;
       color: #2d87e0;
-      margin-bottom: 10px;
+      position: relative;
+      padding-left: 15px;
     }
     
-    .page-subtitle {
-      color: #666;
-      font-size: 16px;
-      max-width: 700px;
-      margin: 0 auto;
+    .page-title::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: linear-gradient(to bottom, #4caefe, #2d87e0);
+      border-radius: 4px;
     }
     
-    /* Articles List */
-    .articles-list {
+    .documents-container {
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 25px;
-      margin-top: 40px;
     }
     
-    .article-item {
+    .document-card {
       background: white;
       border-radius: 12px;
       overflow: hidden;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-      transition: all 0.3s;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
     }
     
-    .article-item:hover {
+    .document-card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
     }
     
-    .article-content {
-      padding: 25px;
+    .document-image {
+      height: 180px;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #999;
     }
     
-    .article-header {
+    .document-image i {
+      font-size: 50px;
+    }
+    
+    .document-content {
+      padding: 20px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .document-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #333;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .document-meta {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
-      flex-wrap: wrap;
-    }
-    
-    .article-title {
-      font-size: 22px;
-      font-weight: bold;
-      color: #333;
-      margin-right: 15px;
-    }
-    
-    .article-date {
+      margin-top: auto;
       color: #777;
       font-size: 14px;
-      white-space: nowrap;
     }
     
-    .article-author {
+    .document-author {
       display: flex;
       align-items: center;
-      color: #555;
-      margin-bottom: 15px;
-      font-size: 15px;
     }
     
-    .article-author i {
-      margin-right: 8px;
-      color: #4caefe;
+    .document-author i {
+      margin-right: 5px;
     }
     
-    .article-body {
-      color: #444;
-      font-size: 16px;
-      line-height: 1.6;
-    }
-    
-    .article-body img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 8px;
-      margin: 15px 0;
-    }
-    
-    .read-more {
-      display: inline-block;
-      margin-top: 20px;
-      color: #2d87e0;
-      font-weight: bold;
-      text-decoration: none;
-      transition: all 0.3s;
-    }
-    
-    .read-more:hover {
-      color: #1a6fc9;
-      text-decoration: underline;
-    }
-    
-    .read-more i {
-      margin-left: 5px;
-      transition: transform 0.3s;
-    }
-    
-    .read-more:hover i {
-      transform: translateX(3px);
-    }
-    
-    /* Loading */
-    .loading {
+    .document-date {
       display: flex;
-      justify-content: center;
       align-items: center;
-      height: 200px;
     }
     
-    .spinner {
-      width: 50px;
-      height: 50px;
-      border: 5px solid rgba(76, 174, 254, 0.2);
-      border-radius: 50%;
-      border-top-color: #2d87e0;
-      animation: spin 1s ease-in-out infinite;
+    .document-date i {
+      margin-right: 5px;
     }
     
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    
-    /* Empty State */
     .empty-state {
       text-align: center;
       padding: 50px 20px;
-      color: #777;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      grid-column: 1 / -1;
     }
     
-    .empty-icon {
+    .empty-state i {
       font-size: 60px;
-      color: #ddd;
+      color: #ccc;
       margin-bottom: 20px;
     }
     
-    .empty-text {
-      font-size: 18px;
+    .empty-state h3 {
+      font-size: 22px;
+      color: #555;
+      margin-bottom: 10px;
+    }
+    
+    .empty-state p {
+      color: #777;
+      max-width: 500px;
+      margin: 0 auto 20px;
     }
     
     /* Responsive */
     @media (max-width: 768px) {
+      .documents-container {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      }
+      
       .page-title {
         font-size: 24px;
       }
-      
-      .article-title {
-        font-size: 20px;
-        margin-bottom: 10px;
+    }
+    
+    @media (max-width: 576px) {
+      .documents-container {
+        grid-template-columns: 1fr;
       }
       
-      .article-header {
+      .page-header {
         flex-direction: column;
         align-items: flex-start;
       }
       
-      .article-date {
+      .page-title {
         margin-bottom: 15px;
       }
     }
-    
-    @media (max-width: 480px) {
-      .article-content {
-        padding: 20px;
-      }
-      
-      .page-title {
-        font-size: 22px;
-      }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
     }
   </style>
 </head>
 <body>
 
-  <!-- Header -->
+  <!-- Thanh trên cùng -->
   <div class="header">
     <div class="logo" onclick="goToHome()">
       <i class="fa-solid fa-bolt"></i>
@@ -336,30 +373,50 @@
         </button>
       </div>
       
+      <div class="notification">
+        <i class="fa fa-bell"></i>
+        <span class="notification-badge">3</span>
+      </div>
+      
       <!-- Auth buttons will be inserted here by JavaScript -->
       <div class="auth-buttons" id="authButtons"></div>
     </div>
   </div>
   
-  <!-- Main Container -->
+  <!-- Main content -->
   <div class="main-container">
     <div class="page-header">
-      <h1 class="page-title">Văn bản Pháp lý</h1>
-      <p class="page-subtitle">Các văn bản pháp lý, quy định, hướng dẫn liên quan đến ngành điện lực</p>
+      <h1 class="page-title">Văn bản pháp lý</h1>
     </div>
     
-    <!-- Articles List -->
-    <div class="articles-list" id="articlesList">
-      <div class="loading">
-        <div class="spinner"></div>
+    <div class="documents-container" id="documentsContainer">
+      <!-- Documents will be loaded here -->
+      <div class="empty-state">
+        <i class="fas fa-file-alt"></i>
+        <h3>Không có văn bản nào</h3>
+        <p>Hiện chưa có văn bản pháp lý nào được đăng tải. Vui lòng quay lại sau.</p>
       </div>
     </div>
   </div>
 
-  <!-- Firebase and App Script -->
   <script>
     // Initialize Firebase
     const firebaseConfig = {
+      apiKey: "AIzaSyBXMptx-Tt3dDLmWgRUgyfh2tW2BRGY1KE",
+      authDomain: "scan-text-eccf7.firebaseapp.com",
+      projectId: "scan-text-eccf7",
+      storageBucket: "scan-text-eccf7.appspot.com",
+      messagingSenderId: "116481688073",
+      appId: "1:116481688073:web:a85a3abcec812a9423eed8",
+      measurementId: "G-CRVRVRXHYF"
+    };
+    
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    
+    // Initialize Firestore for legal documents
+    const firestoreConfig = {
       apiKey: "AIzaSyBi-bivEL4ZRlXnJNdI2GTxZicbqpFTNfU",
       authDomain: "pltt-39da9.firebaseapp.com",
       projectId: "pltt-39da9",
@@ -369,135 +426,84 @@
       measurementId: "G-KQ51HV803Z"
     };
     
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+    const secondaryApp = firebase.initializeApp(firestoreConfig, "Secondary");
+    const db = secondaryApp.firestore();
     
     // DOM Elements
     const authButtons = document.getElementById('authButtons');
-    const articlesList = document.getElementById('articlesList');
-    const searchInput = document.querySelector('.search-input');
-    const searchToggle = document.querySelector('.search-toggle');
+    const documentsContainer = document.getElementById('documentsContainer');
+    
+    // Check screen width
+    function isMobile() {
+      return window.innerWidth <= 600;
+    }
     
     // Go to home page
     function goToHome() {
       window.location.href = 'index.html';
     }
     
-    // Load articles
-    async function loadArticles(searchTerm = '') {
-      try {
-        let query = db.collection('legal_documents')
-          .orderBy('updatedAt', 'desc');
-        
-        if (searchTerm) {
-          query = query.where('title', '>=', searchTerm)
-            .where('title', '<=', searchTerm + '\uf8ff');
-        }
-        
-        const querySnapshot = await query.get();
-        
-        if (querySnapshot.empty) {
-          articlesList.innerHTML = `
-            <div class="empty-state">
-              <div class="empty-icon">
-                <i class="fas fa-file-alt"></i>
-              </div>
-              <p class="empty-text">Không có văn bản nào được tìm thấy</p>
-            </div>
-          `;
-          return;
-        }
-        
-        articlesList.innerHTML = '';
-        
-        querySnapshot.forEach((doc) => {
-          const article = doc.data();
-          const articleId = doc.id;
-          
-          // Format date
-          const date = article.updatedAt?.toDate() || new Date();
-          const formattedDate = date.toLocaleDateString('vi-VN', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-          });
-          
-          // Create article element
-          const articleItem = document.createElement('div');
-          articleItem.className = 'article-item';
-          
-          // Parse content to get first paragraph for preview
-          let previewContent = '';
-          try {
-            const content = JSON.parse(article.content);
-            if (content.ops && content.ops.length > 0) {
-              previewContent = content.ops[0].insert;
-              if (previewContent.length > 200) {
-                previewContent = previewContent.substring(0, 200) + '...';
-              }
-            }
-          } catch (e) {
-            previewContent = article.excerpt || '';
-          }
-          
-          articleItem.innerHTML = `
-            <div class="article-content">
-              <div class="article-header">
-                <h2 class="article-title">${article.title}</h2>
-                <span class="article-date"><i class="far fa-calendar-alt"></i> ${formattedDate}</span>
-              </div>
-              <div class="article-author">
-                <i class="fas fa-user-edit"></i> ${article.author}
-              </div>
-              <div class="article-body">
-                <p>${previewContent}</p>
-                <a href="phaply-detail.html?id=${articleId}" class="read-more">
-                  Xem chi tiết <i class="fas fa-arrow-right"></i>
-                </a>
-              </div>
-            </div>
-          `;
-          
-          articlesList.appendChild(articleItem);
-        });
-      } catch (error) {
-        console.error('Error loading articles:', error);
-        articlesList.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-icon">
-              <i class="fas fa-exclamation-triangle"></i>
-            </div>
-            <p class="empty-text">Đã xảy ra lỗi khi tải văn bản. Vui lòng thử lại sau.</p>
-          </div>
-        `;
-      }
+    // Format date
+    function formatDate(timestamp) {
+      if (!timestamp) return 'Không rõ';
+      const date = timestamp.toDate();
+      return date.toLocaleDateString('vi-VN');
     }
     
-    // Search functionality
-    searchToggle.addEventListener('click', function(e) {
-      e.stopPropagation();
-      searchInput.classList.toggle('active');
-      if (searchInput.classList.contains('active')) {
-        searchInput.focus();
-      }
-    });
-    
-    document.addEventListener('click', function(e) {
-      if (!e.target.closest('.search-container') && searchInput.classList.contains('active')) {
-        searchInput.classList.remove('active');
-      }
-    });
-    
-    // Search input event
-    let searchTimeout;
-    searchInput.addEventListener('input', function() {
-      clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(() => {
-        loadArticles(this.value.trim());
-      }, 500);
-    });
+    // Load legal documents
+    function loadLegalDocuments() {
+      db.collection("legalDocuments").orderBy("createdAt", "desc").get()
+        .then((querySnapshot) => {
+          if (querySnapshot.empty) {
+            documentsContainer.innerHTML = `
+              <div class="empty-state">
+                <i class="fas fa-file-alt"></i>
+                <h3>Không có văn bản nào</h3>
+                <p>Hiện chưa có văn bản pháp lý nào được đăng tải. Vui lòng quay lại sau.</p>
+              </div>
+            `;
+            return;
+          }
+          
+          documentsContainer.innerHTML = '';
+          
+          querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            const docId = doc.id;
+            
+            const card = document.createElement('div');
+            card.className = 'document-card';
+            card.innerHTML = `
+              <div class="document-image">
+                <i class="fas fa-file-contract"></i>
+              </div>
+              <div class="document-content">
+                <h3 class="document-title">${data.title || 'Không có tiêu đề'}</h3>
+                <div class="document-meta">
+                  <span class="document-author"><i class="fas fa-user-edit"></i> ${data.author || 'Không rõ'}</span>
+                  <span class="document-date"><i class="fas fa-calendar-alt"></i> ${formatDate(data.createdAt)}</span>
+                </div>
+              </div>
+            `;
+            
+            card.addEventListener('click', () => {
+              window.location.href = `phaply-detail.html?id=${docId}`;
+            });
+            
+            documentsContainer.appendChild(card);
+          });
+        })
+        .catch((error) => {
+          console.error("Error loading documents: ", error);
+          documentsContainer.innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-exclamation-triangle"></i>
+              <h3>Đã xảy ra lỗi</h3>
+              <p>Không thể tải danh sách văn bản. Vui lòng thử lại sau.</p>
+            </div>
+          `;
+        });
+    }
     
     // Auth state observer
     auth.onAuthStateChanged(user => {
@@ -506,46 +512,42 @@
         authButtons.innerHTML = `
           <button class="auth-btn" onclick="logout()" title="Đăng xuất">
             <i class="fas fa-sign-out-alt"></i>
-            <span>Đăng xuất</span>
+            ${isMobile() ? '' : '<span>Đăng xuất</span>'}
           </button>
           ${user.photoURL ? 
             `<img src="${user.photoURL}" class="user-avatar" title="${user.displayName || user.email}">` : 
             `<span class="auth-btn" title="${user.displayName || user.email}">
               <i class="fas fa-user"></i>
-              <span>${user.displayName || user.email.split('@')[0]}</span>
+              ${isMobile() ? '' : `<span>${user.displayName || user.email.split('@')[0]}</span>`}
             </span>`}
         `;
-        
-        // Check if user is admin
-        if (user.email === 'admin@example.com') { // Replace with your admin email
-          const adminLink = document.createElement('a');
-          adminLink.href = 'phaply-ad.html';
-          adminLink.className = 'auth-btn';
-          adminLink.innerHTML = '<i class="fas fa-cog"></i> <span>Quản trị</span>';
-          authButtons.insertBefore(adminLink, authButtons.firstChild);
-        }
       } else {
         // User is signed out
         authButtons.innerHTML = `
-          <button class="auth-btn" onclick="window.location.href='login.html'">
+          <button class="auth-btn" onclick="window.location.href='login.html?redirect=phaply.html'" title="Đăng nhập">
             <i class="fas fa-sign-in-alt"></i>
-            <span>Đăng nhập</span>
+            ${isMobile() ? '' : '<span>Đăng nhập</span>'}
+          </button>
+          <button class="auth-btn" onclick="window.location.href='register.html?redirect=phaply.html'" title="Đăng ký">
+            <i class="fas fa-user-plus"></i>
+            ${isMobile() ? '' : '<span>Đăng ký</span>'}
           </button>
         `;
       }
       
-      // Load articles
-      loadArticles();
+      // Load documents
+      loadLegalDocuments();
     });
     
     // Logout function
     function logout() {
       auth.signOut().then(() => {
-        window.location.href = 'index.html';
+        window.location.reload();
       }).catch(error => {
         console.error('Logout error:', error);
       });
     }
   </script>
+
 </body>
 </html>
