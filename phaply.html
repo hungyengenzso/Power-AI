@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Power AI - Văn bản pháp lý</title>
+  <title>Văn bản pháp lý - Power AI</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
@@ -194,6 +194,7 @@
     
     .page-title {
       font-size: 28px;
+      font-weight: bold;
       margin-bottom: 30px;
       color: #2d87e0;
       text-align: center;
@@ -213,123 +214,137 @@
       border-radius: 2px;
     }
     
-    .articles-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-      gap: 30px;
-      margin-top: 40px;
+    .search-bar {
+      display: flex;
+      margin-bottom: 25px;
+      background: white;
+      border-radius: 30px;
+      overflow: hidden;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
     }
     
-    .article-card {
+    .search-bar input {
+      flex: 1;
+      padding: 12px 20px;
+      border: none;
+      outline: none;
+      font-size: 16px;
+    }
+    
+    .search-bar button {
+      background: linear-gradient(135deg, #4caefe, #2d87e0);
+      color: white;
+      border: none;
+      padding: 0 20px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .search-bar button:hover {
+      opacity: 0.9;
+    }
+    
+    .documents-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 25px;
+      margin-top: 30px;
+    }
+    
+    .document-card {
       background: white;
       border-radius: 12px;
       overflow: hidden;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-      transition: transform 0.3s, box-shadow 0.3s;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+      transition: all 0.3s ease;
+      cursor: pointer;
     }
     
-    .article-card:hover {
+    .document-card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.12);
     }
     
-    .article-image {
+    .document-image {
+      height: 180px;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #999;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .document-image img {
       width: 100%;
-      height: 200px;
+      height: 100%;
       object-fit: cover;
     }
     
-    .article-content {
+    .document-content {
       padding: 20px;
     }
     
-    .article-title {
-      font-size: 20px;
+    .document-title {
+      font-size: 18px;
+      font-weight: bold;
       margin-bottom: 10px;
       color: #333;
-      line-height: 1.4;
-    }
-    
-    .article-meta {
-      display: flex;
-      align-items: center;
-      margin-bottom: 15px;
-      font-size: 14px;
-      color: #666;
-    }
-    
-    .article-author {
-      display: flex;
-      align-items: center;
-      margin-right: 15px;
-    }
-    
-    .article-author i {
-      margin-right: 5px;
-      color: #4caefe;
-    }
-    
-    .article-date {
-      display: flex;
-      align-items: center;
-    }
-    
-    .article-date i {
-      margin-right: 5px;
-      color: #4caefe;
-    }
-    
-    .article-excerpt {
-      color: #555;
-      line-height: 1.6;
-      margin-bottom: 15px;
       display: -webkit-box;
-      -webkit-line-clamp: 3;
+      -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
     
-    .read-more {
-      display: inline-block;
-      padding: 8px 20px;
-      background: linear-gradient(135deg, #4caefe, #2d87e0);
-      color: white;
-      border-radius: 30px;
-      text-decoration: none;
-      font-weight: 500;
-      transition: all 0.3s;
+    .document-meta {
+      display: flex;
+      justify-content: space-between;
+      color: #777;
+      font-size: 14px;
+      margin-top: 15px;
     }
     
-    .read-more:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(76, 174, 254, 0.4);
-    }
-    
-    .admin-link {
-      display: block;
-      text-align: center;
-      margin-top: 30px;
-    }
-    
-    .admin-btn {
-      display: inline-flex;
+    .document-author {
+      display: flex;
       align-items: center;
-      padding: 10px 25px;
-      background: linear-gradient(135deg, #ff7675, #d63031);
-      color: white;
-      border-radius: 30px;
-      text-decoration: none;
-      font-weight: 500;
-      transition: all 0.3s;
     }
     
-    .admin-btn i {
-      margin-right: 8px;
+    .document-author i {
+      margin-right: 5px;
     }
     
-    .admin-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(255, 118, 117, 0.4);
+    .document-date {
+      display: flex;
+      align-items: center;
+    }
+    
+    .document-date i {
+      margin-right: 5px;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 50px 20px;
+      grid-column: 1 / -1;
+    }
+    
+    .empty-state i {
+      font-size: 60px;
+      color: #ccc;
+      margin-bottom: 20px;
+    }
+    
+    .empty-state h3 {
+      font-size: 20px;
+      color: #666;
+      margin-bottom: 10px;
+    }
+    
+    .empty-state p {
+      color: #999;
+      max-width: 500px;
+      margin: 0 auto;
     }
     
     /* Footer */
@@ -386,13 +401,8 @@
 
     /* Responsive */
     @media (max-width: 768px) {
-      .articles-container {
-        grid-template-columns: 1fr;
-      }
-      
-      .article-card {
-        max-width: 500px;
-        margin: 0 auto;
+      .documents-container {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
       }
       
       .page-title {
@@ -400,17 +410,47 @@
       }
     }
     
-    @media (max-width: 480px) {
-      .article-image {
-        height: 180px;
+    @media (max-width: 600px) {
+      .auth-btn span {
+        display: none;
       }
       
-      .article-content {
-        padding: 15px;
+      .auth-btn i {
+        margin-right: 0;
       }
       
-      .article-title {
-        font-size: 18px;
+      .auth-btn {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border-radius: 50%;
+      }
+      
+      .search-input.active {
+        width: 150px;
+      }
+      
+      .header {
+        padding: 12px 3%;
+      }
+      
+      .search-container {
+        margin: 0 10px;
+      }
+      
+      .notification {
+        margin-left: 10px;
+      }
+      
+      .auth-buttons {
+        margin-left: 10px;
+      }
+      
+      .documents-container {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -443,26 +483,29 @@
         <span class="notification-badge">3</span>
       </div>
       
-      <!-- Auth buttons will be inserted here by JavaScript -->
       <div class="auth-buttons" id="authButtons"></div>
     </div>
   </div>
-  
+
   <!-- Main content -->
   <div class="container">
     <h1 class="page-title">Văn bản pháp lý</h1>
     
-    <div class="articles-container" id="articlesContainer">
-      <!-- Articles will be loaded here -->
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Tìm kiếm văn bản...">
+      <button id="searchButton"><i class="fas fa-search"></i></button>
     </div>
     
-    <div class="admin-link">
-      <a href="phaply-ad.html" class="admin-btn">
-        <i class="fas fa-user-shield"></i> Trang quản trị
-      </a>
+    <div class="documents-container" id="documentsContainer">
+      <!-- Documents will be loaded here -->
+      <div class="empty-state">
+        <i class="fas fa-file-alt"></i>
+        <h3>Không có văn bản nào</h3>
+        <p>Hiện chưa có văn bản pháp lý nào được đăng tải. Vui lòng quay lại sau.</p>
+      </div>
     </div>
   </div>
-  
+
   <!-- Footer -->
   <div class="footer">
     <a href="tel:1900545454" class="hotline">
@@ -471,8 +514,8 @@
   </div>
 
   <script>
-    // Initialize Firebase
-    const firebaseConfig = {
+    // Initialize Firebase Auth
+    const firebaseAuthConfig = {
       apiKey: "AIzaSyBXMptx-Tt3dDLmWgRUgyfh2tW2BRGY1KE",
       authDomain: "scan-text-eccf7.firebaseapp.com",
       projectId: "scan-text-eccf7",
@@ -482,12 +525,8 @@
       measurementId: "G-CRVRVRXHYF"
     };
     
-    // Initialize Firebase Auth
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    
-    // Initialize Firestore (with different config)
-    const firestoreConfig = {
+    // Initialize Firebase Database
+    const firebaseDbConfig = {
       apiKey: "AIzaSyBi-bivEL4ZRlXnJNdI2GTxZicbqpFTNfU",
       authDomain: "pltt-39da9.firebaseapp.com",
       projectId: "pltt-39da9",
@@ -497,13 +536,19 @@
       measurementId: "G-KQ51HV803Z"
     };
     
-    // Initialize secondary Firebase app for Firestore
-    const firestoreApp = firebase.initializeApp(firestoreConfig, "Firestore");
-    const db = firebase.firestore(firestoreApp);
+    // Initialize Firebase Auth
+    const authApp = firebase.initializeApp(firebaseAuthConfig, "auth");
+    const auth = firebase.auth(authApp);
+    
+    // Initialize Firebase Database
+    const dbApp = firebase.initializeApp(firebaseDbConfig, "db");
+    const db = firebase.firestore(dbApp);
     
     // DOM Elements
     const authButtons = document.getElementById('authButtons');
-    const articlesContainer = document.getElementById('articlesContainer');
+    const documentsContainer = document.getElementById('documentsContainer');
+    const searchInput = document.getElementById('searchInput');
+    const searchButton = document.getElementById('searchButton');
     
     // Check screen width
     function isMobile() {
@@ -517,56 +562,80 @@
     
     // Format date
     function formatDate(timestamp) {
-      if (!timestamp) return 'Không rõ ngày';
+      if (!timestamp) return 'Không rõ';
       const date = timestamp.toDate();
-      return date.toLocaleDateString('vi-VN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
+      return date.toLocaleDateString('vi-VN');
+    }
+    
+    // Load documents
+    function loadDocuments(searchTerm = '') {
+      let query = db.collection('legalDocuments').orderBy('createdAt', 'desc');
+      
+      if (searchTerm) {
+        query = query.where('keywords', 'array-contains', searchTerm.toLowerCase());
+      }
+      
+      query.get().then((querySnapshot) => {
+        if (querySnapshot.empty) {
+          documentsContainer.innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-file-alt"></i>
+              <h3>Không tìm thấy văn bản</h3>
+              <p>Không có văn bản nào phù hợp với từ khóa tìm kiếm của bạn.</p>
+            </div>
+          `;
+          return;
+        }
+        
+        documentsContainer.innerHTML = '';
+        
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          const docElement = document.createElement('div');
+          docElement.className = 'document-card';
+          docElement.innerHTML = `
+            <div class="document-image">
+              ${data.imageUrl ? 
+                `<img src="${data.imageUrl}" alt="${data.title}">` : 
+                `<i class="fas fa-file-pdf" style="font-size: 50px; color: #2d87e0;"></i>`}
+            </div>
+            <div class="document-content">
+              <h3 class="document-title">${data.title}</h3>
+              <div class="document-meta">
+                <span class="document-author"><i class="fas fa-user-edit"></i> ${data.author || 'Không rõ'}</span>
+                <span class="document-date"><i class="fas fa-calendar-alt"></i> ${formatDate(data.createdAt)}</span>
+              </div>
+            </div>
+          `;
+          
+          docElement.addEventListener('click', () => {
+            window.location.href = `phaply-detail.html?id=${doc.id}`;
+          });
+          
+          documentsContainer.appendChild(docElement);
+        });
+      }).catch((error) => {
+        console.error("Error loading documents: ", error);
+        documentsContainer.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>Đã xảy ra lỗi</h3>
+            <p>Không thể tải danh sách văn bản. Vui lòng thử lại sau.</p>
+          </div>
+        `;
       });
     }
     
-    // Load articles from Firestore
-    function loadArticles() {
-      db.collection("legal_documents").orderBy("createdAt", "desc").get()
-        .then((querySnapshot) => {
-          articlesContainer.innerHTML = '';
-          
-          if (querySnapshot.empty) {
-            articlesContainer.innerHTML = '<p style="grid-column:1/-1;text-align:center;">Chưa có văn bản pháp lý nào được đăng tải</p>';
-            return;
-          }
-          
-          querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            const articleCard = document.createElement('div');
-            articleCard.className = 'article-card';
-            articleCard.innerHTML = `
-              <img src="${data.imageUrl || 'https://via.placeholder.com/400x200?text=Power+AI'}" alt="${data.title}" class="article-image">
-              <div class="article-content">
-                <h3 class="article-title">${data.title}</h3>
-                <div class="article-meta">
-                  <span class="article-author"><i class="fas fa-user-edit"></i> ${data.author || 'Admin'}</span>
-                  <span class="article-date"><i class="far fa-calendar-alt"></i> ${formatDate(data.createdAt)}</span>
-                </div>
-                <p class="article-excerpt">${data.content.substring(0, 150)}...</p>
-                <a href="#" class="read-more" onclick="viewArticle('${doc.id}')">Xem chi tiết</a>
-              </div>
-            `;
-            articlesContainer.appendChild(articleCard);
-          });
-        })
-        .catch((error) => {
-          console.error("Error loading documents: ", error);
-          articlesContainer.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:red;">Có lỗi xảy ra khi tải văn bản pháp lý</p>';
-        });
-    }
+    // Search functionality
+    searchButton.addEventListener('click', () => {
+      loadDocuments(searchInput.value.trim());
+    });
     
-    // View article details
-    function viewArticle(articleId) {
-      // In a real app, you would navigate to a detailed view or show a modal
-      alert(`Xem chi tiết văn bản có ID: ${articleId}`);
-    }
+    searchInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        loadDocuments(searchInput.value.trim());
+      }
+    });
     
     // Auth state observer
     auth.onAuthStateChanged(user => {
@@ -587,19 +656,16 @@
       } else {
         // User is signed out
         authButtons.innerHTML = `
-          <button class="auth-btn" onclick="window.location.href='index.html#login'" title="Đăng nhập">
+          <button class="auth-btn" onclick="window.location.href='login.html'" title="Đăng nhập">
             <i class="fas fa-sign-in-alt"></i>
             ${isMobile() ? '' : '<span>Đăng nhập</span>'}
           </button>
-          <button class="auth-btn" onclick="window.location.href='index.html#register'" title="Đăng ký">
+          <button class="auth-btn" onclick="window.location.href='register.html'" title="Đăng ký">
             <i class="fas fa-user-plus"></i>
             ${isMobile() ? '' : '<span>Đăng ký</span>'}
           </button>
         `;
       }
-      
-      // Load articles after auth check
-      loadArticles();
     });
     
     // Logout function
@@ -611,22 +677,9 @@
       });
     }
     
-    // Search functionality
-    const searchToggle = document.querySelector('.search-toggle');
-    const searchInput = document.querySelector('.search-input');
-    
-    searchToggle.addEventListener('click', function(e) {
-      e.stopPropagation();
-      searchInput.classList.toggle('active');
-      if (searchInput.classList.contains('active')) {
-        searchInput.focus();
-      }
-    });
-    
-    document.addEventListener('click', function(e) {
-      if (!e.target.closest('.search-container') && searchInput.classList.contains('active')) {
-        searchInput.classList.remove('active');
-      }
+    // Load documents on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      loadDocuments();
     });
   </script>
 </body>
