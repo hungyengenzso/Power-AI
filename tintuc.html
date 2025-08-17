@@ -186,70 +186,104 @@
     }
 
     /* Main content */
-    .main-container {
+    .container {
       max-width: 1200px;
       margin: 30px auto;
       padding: 0 20px;
     }
     
-    .page-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 30px;
-    }
-    
     .page-title {
       font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 30px;
       color: #2d87e0;
+      text-align: center;
       position: relative;
-      padding-left: 15px;
+      padding-bottom: 15px;
     }
     
-    .page-title::before {
+    .page-title::after {
       content: '';
       position: absolute;
-      left: 0;
-      top: 0;
       bottom: 0;
-      width: 4px;
-      background: linear-gradient(to bottom, #4caefe, #2d87e0);
-      border-radius: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 4px;
+      background: linear-gradient(to right, #4caefe, #2d87e0);
+      border-radius: 2px;
+    }
+    
+    .search-bar {
+      display: flex;
+      margin-bottom: 25px;
+      background: white;
+      border-radius: 30px;
+      overflow: hidden;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+    
+    .search-bar input {
+      flex: 1;
+      padding: 12px 20px;
+      border: none;
+      outline: none;
+      font-size: 16px;
+    }
+    
+    .search-bar button {
+      background: linear-gradient(135deg, #4caefe, #2d87e0);
+      color: white;
+      border: none;
+      padding: 0 20px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .search-bar button:hover {
+      opacity: 0.9;
     }
     
     .news-container {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 25px;
+      margin-top: 30px;
     }
     
     .news-card {
       background: white;
       border-radius: 12px;
       overflow: hidden;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.08);
       transition: all 0.3s ease;
       cursor: pointer;
-      display: flex;
-      flex-direction: column;
     }
     
     .news-card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.12);
     }
     
     .news-image {
       height: 180px;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #999;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .news-image img {
       width: 100%;
+      height: 100%;
       object-fit: cover;
     }
     
     .news-content {
       padding: 20px;
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
     }
     
     .news-title {
@@ -263,7 +297,7 @@
       overflow: hidden;
     }
     
-    .news-excerpt {
+    .news-summary {
       color: #666;
       font-size: 14px;
       margin-bottom: 15px;
@@ -276,7 +310,6 @@
     .news-meta {
       display: flex;
       justify-content: space-between;
-      margin-top: auto;
       color: #777;
       font-size: 14px;
     }
@@ -302,9 +335,6 @@
     .empty-state {
       text-align: center;
       padding: 50px 20px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
       grid-column: 1 / -1;
     }
     
@@ -315,17 +345,69 @@
     }
     
     .empty-state h3 {
-      font-size: 22px;
-      color: #555;
+      font-size: 20px;
+      color: #666;
       margin-bottom: 10px;
     }
     
     .empty-state p {
-      color: #777;
+      color: #999;
       max-width: 500px;
-      margin: 0 auto 20px;
+      margin: 0 auto;
     }
     
+    /* Footer */
+    .footer {
+      background: #fff;
+      padding: 20px;
+      text-align: center;
+      border-top: 1px solid #eee;
+      margin-top: 30px;
+      font-size: 15px;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.03);
+    }
+    
+    .hotline {
+      display: inline-flex;
+      align-items: center;
+      background: linear-gradient(135deg, #4caefe, #2d87e0);
+      color: white;
+      padding: 12px 25px;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: bold;
+      box-shadow: 0 4px 15px rgba(76, 174, 254, 0.3);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .hotline::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0));
+      transform: rotate(30deg);
+      transition: all 0.5s;
+    }
+    
+    .hotline:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(76, 174, 254, 0.4);
+    }
+    
+    .hotline:hover::before {
+      left: 100%;
+    }
+    
+    .hotline i {
+      margin-right: 8px;
+      font-size: 16px;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
       .news-container {
@@ -337,18 +419,47 @@
       }
     }
     
-    @media (max-width: 576px) {
+    @media (max-width: 600px) {
+      .auth-btn span {
+        display: none;
+      }
+      
+      .auth-btn i {
+        margin-right: 0;
+      }
+      
+      .auth-btn {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border-radius: 50%;
+      }
+      
+      .search-input.active {
+        width: 150px;
+      }
+      
+      .header {
+        padding: 12px 3%;
+      }
+      
+      .search-container {
+        margin: 0 10px;
+      }
+      
+      .notification {
+        margin-left: 10px;
+      }
+      
+      .auth-buttons {
+        margin-left: 10px;
+      }
+      
       .news-container {
         grid-template-columns: 1fr;
-      }
-      
-      .page-header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      
-      .page-title {
-        margin-bottom: 15px;
       }
     }
 
@@ -361,7 +472,7 @@
 </head>
 <body>
 
-  <!-- Thanh trên cùng -->
+  <!-- Header -->
   <div class="header">
     <div class="logo" onclick="goToHome()">
       <i class="fa-solid fa-bolt"></i>
@@ -370,7 +481,7 @@
     
     <div class="header-right">
       <div class="search-container">
-        <input type="text" class="search-input" placeholder="Tìm kiếm tin tức...">
+        <input type="text" class="search-input" placeholder="Tìm kiếm dịch vụ...">
         <button class="search-toggle">
           <i class="fas fa-search"></i>
         </button>
@@ -381,15 +492,17 @@
         <span class="notification-badge">3</span>
       </div>
       
-      <!-- Auth buttons will be inserted here by JavaScript -->
       <div class="auth-buttons" id="authButtons"></div>
     </div>
   </div>
-  
+
   <!-- Main content -->
-  <div class="main-container">
-    <div class="page-header">
-      <h1 class="page-title">Tin tức mới nhất</h1>
+  <div class="container">
+    <h1 class="page-title">Tin tức mới nhất</h1>
+    
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Tìm kiếm tin tức...">
+      <button id="searchButton"><i class="fas fa-search"></i></button>
     </div>
     
     <div class="news-container" id="newsContainer">
@@ -402,9 +515,16 @@
     </div>
   </div>
 
+  <!-- Footer -->
+  <div class="footer">
+    <a href="tel:1900545454" class="hotline">
+      <i class="fas fa-phone-alt"></i> Liên hệ: 0977893086
+    </a>
+  </div>
+
   <script>
-    // Initialize Firebase
-    const firebaseConfig = {
+    // Initialize Firebase Auth
+    const firebaseAuthConfig = {
       apiKey: "AIzaSyBXMptx-Tt3dDLmWgRUgyfh2tW2BRGY1KE",
       authDomain: "scan-text-eccf7.firebaseapp.com",
       projectId: "scan-text-eccf7",
@@ -414,12 +534,8 @@
       measurementId: "G-CRVRVRXHYF"
     };
     
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    
-    // Initialize Firestore for news
-    const firestoreConfig = {
+    // Initialize Firebase Database
+    const firebaseDbConfig = {
       apiKey: "AIzaSyBi-bivEL4ZRlXnJNdI2GTxZicbqpFTNfU",
       authDomain: "pltt-39da9.firebaseapp.com",
       projectId: "pltt-39da9",
@@ -429,12 +545,19 @@
       measurementId: "G-KQ51HV803Z"
     };
     
-    const secondaryApp = firebase.initializeApp(firestoreConfig, "Secondary");
-    const db = secondaryApp.firestore();
+    // Initialize Firebase Auth
+    const authApp = firebase.initializeApp(firebaseAuthConfig, "auth");
+    const auth = firebase.auth(authApp);
+    
+    // Initialize Firebase Database
+    const dbApp = firebase.initializeApp(firebaseDbConfig, "db");
+    const db = firebase.firestore(dbApp);
     
     // DOM Elements
     const authButtons = document.getElementById('authButtons');
     const newsContainer = document.getElementById('newsContainer');
+    const searchInput = document.getElementById('searchInput');
+    const searchButton = document.getElementById('searchButton');
     
     // Check screen width
     function isMobile() {
@@ -454,58 +577,75 @@
     }
     
     // Load news
-    function loadNews() {
-      db.collection("news").orderBy("createdAt", "desc").get()
-        .then((querySnapshot) => {
-          if (querySnapshot.empty) {
-            newsContainer.innerHTML = `
-              <div class="empty-state">
-                <i class="fas fa-newspaper"></i>
-                <h3>Không có tin tức nào</h3>
-                <p>Hiện chưa có tin tức nào được đăng tải. Vui lòng quay lại sau.</p>
-              </div>
-            `;
-            return;
-          }
-          
-          newsContainer.innerHTML = '';
-          
-          querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            const newsId = doc.id;
-            
-            const card = document.createElement('div');
-            card.className = 'news-card';
-            card.innerHTML = `
-              <img src="${data.imageUrl || 'https://via.placeholder.com/300x180?text=No+Image'}" class="news-image" alt="${data.title || 'Tin tức'}">
-              <div class="news-content">
-                <h3 class="news-title">${data.title || 'Không có tiêu đề'}</h3>
-                <p class="news-excerpt">${data.content ? JSON.parse(data.content).ops[0].insert.substring(0, 100) + '...' : 'Không có nội dung'}</p>
-                <div class="news-meta">
-                  <span class="news-author"><i class="fas fa-user-edit"></i> ${data.author || 'Không rõ'}</span>
-                  <span class="news-date"><i class="fas fa-calendar-alt"></i> ${formatDate(data.createdAt)}</span>
-                </div>
-              </div>
-            `;
-            
-            card.addEventListener('click', () => {
-              window.location.href = `tintuc-detail.html?id=${newsId}`;
-            });
-            
-            newsContainer.appendChild(card);
-          });
-        })
-        .catch((error) => {
-          console.error("Error loading news: ", error);
+    function loadNews(searchTerm = '') {
+      let query = db.collection('news').orderBy('createdAt', 'desc');
+      
+      if (searchTerm) {
+        query = query.where('keywords', 'array-contains', searchTerm.toLowerCase());
+      }
+      
+      query.get().then((querySnapshot) => {
+        if (querySnapshot.empty) {
           newsContainer.innerHTML = `
             <div class="empty-state">
-              <i class="fas fa-exclamation-triangle"></i>
-              <h3>Đã xảy ra lỗi</h3>
-              <p>Không thể tải danh sách tin tức. Vui lòng thử lại sau.</p>
+              <i class="fas fa-newspaper"></i>
+              <h3>Không tìm thấy tin tức</h3>
+              <p>Không có tin tức nào phù hợp với từ khóa tìm kiếm của bạn.</p>
             </div>
           `;
+          return;
+        }
+        
+        newsContainer.innerHTML = '';
+        
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          const newsElement = document.createElement('div');
+          newsElement.className = 'news-card';
+          newsElement.innerHTML = `
+            <div class="news-image">
+              ${data.imageUrl ? 
+                `<img src="${data.imageUrl}" alt="${data.title}">` : 
+                `<i class="fas fa-newspaper" style="font-size: 50px; color: #2d87e0;"></i>`}
+            </div>
+            <div class="news-content">
+              <h3 class="news-title">${data.title}</h3>
+              <p class="news-summary">${data.summary || 'Không có tóm tắt'}</p>
+              <div class="news-meta">
+                <span class="news-author"><i class="fas fa-user-edit"></i> ${data.author || 'Không rõ'}</span>
+                <span class="news-date"><i class="fas fa-calendar-alt"></i> ${formatDate(data.createdAt)}</span>
+              </div>
+            </div>
+          `;
+          
+          newsElement.addEventListener('click', () => {
+            window.location.href = `tintuc-detail.html?id=${doc.id}`;
+          });
+          
+          newsContainer.appendChild(newsElement);
         });
+      }).catch((error) => {
+        console.error("Error loading news: ", error);
+        newsContainer.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>Đã xảy ra lỗi</h3>
+            <p>Không thể tải danh sách tin tức. Vui lòng thử lại sau.</p>
+          </div>
+        `;
+      });
     }
+    
+    // Search functionality
+    searchButton.addEventListener('click', () => {
+      loadNews(searchInput.value.trim());
+    });
+    
+    searchInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        loadNews(searchInput.value.trim());
+      }
+    });
     
     // Auth state observer
     auth.onAuthStateChanged(user => {
@@ -526,19 +666,16 @@
       } else {
         // User is signed out
         authButtons.innerHTML = `
-          <button class="auth-btn" onclick="window.location.href='login.html?redirect=tintuc.html'" title="Đăng nhập">
+          <button class="auth-btn" onclick="window.location.href='login.html'" title="Đăng nhập">
             <i class="fas fa-sign-in-alt"></i>
             ${isMobile() ? '' : '<span>Đăng nhập</span>'}
           </button>
-          <button class="auth-btn" onclick="window.location.href='register.html?redirect=tintuc.html'" title="Đăng ký">
+          <button class="auth-btn" onclick="window.location.href='register.html'" title="Đăng ký">
             <i class="fas fa-user-plus"></i>
             ${isMobile() ? '' : '<span>Đăng ký</span>'}
           </button>
         `;
       }
-      
-      // Load news
-      loadNews();
     });
     
     // Logout function
@@ -549,7 +686,11 @@
         console.error('Logout error:', error);
       });
     }
+    
+    // Load news on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      loadNews();
+    });
   </script>
-
 </body>
 </html>
