@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Văn bản pháp lý - Power AI</title>
+  <title>Power AI - Văn bản pháp lý</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
@@ -186,147 +186,213 @@
     }
 
     /* Main content */
-    .main-container {
+    .container {
       max-width: 1200px;
       margin: 30px auto;
       padding: 0 20px;
     }
     
-    .page-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 30px;
-    }
-    
     .page-title {
       font-size: 28px;
+      margin-bottom: 30px;
       color: #2d87e0;
+      text-align: center;
       position: relative;
-      padding-left: 15px;
+      padding-bottom: 15px;
     }
     
-    .page-title::before {
+    .page-title::after {
       content: '';
       position: absolute;
-      left: 0;
-      top: 0;
       bottom: 0;
-      width: 4px;
-      background: linear-gradient(to bottom, #4caefe, #2d87e0);
-      border-radius: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 4px;
+      background: linear-gradient(to right, #4caefe, #2d87e0);
+      border-radius: 2px;
     }
     
-    .documents-container {
+    .articles-container {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 25px;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 30px;
+      margin-top: 40px;
     }
     
-    .document-card {
+    .article-card {
       background: white;
       border-radius: 12px;
       overflow: hidden;
       box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-      transition: all 0.3s ease;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
+      transition: transform 0.3s, box-shadow 0.3s;
     }
     
-    .document-card:hover {
+    .article-card:hover {
       transform: translateY(-5px);
       box-shadow: 0 10px 25px rgba(0,0,0,0.15);
     }
     
-    .document-image {
-      height: 180px;
-      background: #f0f0f0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #999;
+    .article-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
     }
     
-    .document-image i {
-      font-size: 50px;
-    }
-    
-    .document-content {
+    .article-content {
       padding: 20px;
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
     }
     
-    .document-title {
-      font-size: 18px;
-      font-weight: bold;
+    .article-title {
+      font-size: 20px;
       margin-bottom: 10px;
       color: #333;
+      line-height: 1.4;
+    }
+    
+    .article-meta {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      font-size: 14px;
+      color: #666;
+    }
+    
+    .article-author {
+      display: flex;
+      align-items: center;
+      margin-right: 15px;
+    }
+    
+    .article-author i {
+      margin-right: 5px;
+      color: #4caefe;
+    }
+    
+    .article-date {
+      display: flex;
+      align-items: center;
+    }
+    
+    .article-date i {
+      margin-right: 5px;
+      color: #4caefe;
+    }
+    
+    .article-excerpt {
+      color: #555;
+      line-height: 1.6;
+      margin-bottom: 15px;
       display: -webkit-box;
-      -webkit-line-clamp: 2;
+      -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
     
-    .document-meta {
-      display: flex;
-      justify-content: space-between;
-      margin-top: auto;
-      color: #777;
-      font-size: 14px;
+    .read-more {
+      display: inline-block;
+      padding: 8px 20px;
+      background: linear-gradient(135deg, #4caefe, #2d87e0);
+      color: white;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s;
     }
     
-    .document-author {
-      display: flex;
-      align-items: center;
+    .read-more:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(76, 174, 254, 0.4);
     }
     
-    .document-author i {
-      margin-right: 5px;
-    }
-    
-    .document-date {
-      display: flex;
-      align-items: center;
-    }
-    
-    .document-date i {
-      margin-right: 5px;
-    }
-    
-    .empty-state {
+    .admin-link {
+      display: block;
       text-align: center;
-      padding: 50px 20px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-      grid-column: 1 / -1;
+      margin-top: 30px;
     }
     
-    .empty-state i {
-      font-size: 60px;
-      color: #ccc;
-      margin-bottom: 20px;
+    .admin-btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 10px 25px;
+      background: linear-gradient(135deg, #ff7675, #d63031);
+      color: white;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s;
     }
     
-    .empty-state h3 {
-      font-size: 22px;
-      color: #555;
-      margin-bottom: 10px;
+    .admin-btn i {
+      margin-right: 8px;
     }
     
-    .empty-state p {
-      color: #777;
-      max-width: 500px;
-      margin: 0 auto 20px;
+    .admin-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 118, 117, 0.4);
     }
     
+    /* Footer */
+    .footer {
+      background: #fff;
+      padding: 20px;
+      text-align: center;
+      border-top: 1px solid #eee;
+      margin-top: 30px;
+      font-size: 15px;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.03);
+    }
+    
+    .hotline {
+      display: inline-flex;
+      align-items: center;
+      background: linear-gradient(135deg, #4caefe, #2d87e0);
+      color: white;
+      padding: 12px 25px;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: bold;
+      box-shadow: 0 4px 15px rgba(76, 174, 254, 0.3);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .hotline::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0));
+      transform: rotate(30deg);
+      transition: all 0.5s;
+    }
+    
+    .hotline:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(76, 174, 254, 0.4);
+    }
+    
+    .hotline:hover::before {
+      left: 100%;
+    }
+    
+    .hotline i {
+      margin-right: 8px;
+      font-size: 16px;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
-      .documents-container {
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      .articles-container {
+        grid-template-columns: 1fr;
+      }
+      
+      .article-card {
+        max-width: 500px;
+        margin: 0 auto;
       }
       
       .page-title {
@@ -334,18 +400,17 @@
       }
     }
     
-    @media (max-width: 576px) {
-      .documents-container {
-        grid-template-columns: 1fr;
+    @media (max-width: 480px) {
+      .article-image {
+        height: 180px;
       }
       
-      .page-header {
-        flex-direction: column;
-        align-items: flex-start;
+      .article-content {
+        padding: 15px;
       }
       
-      .page-title {
-        margin-bottom: 15px;
+      .article-title {
+        font-size: 18px;
       }
     }
 
@@ -358,7 +423,7 @@
 </head>
 <body>
 
-  <!-- Thanh trên cùng -->
+  <!-- Header -->
   <div class="header">
     <div class="logo" onclick="goToHome()">
       <i class="fa-solid fa-bolt"></i>
@@ -367,7 +432,7 @@
     
     <div class="header-right">
       <div class="search-container">
-        <input type="text" class="search-input" placeholder="Tìm kiếm văn bản...">
+        <input type="text" class="search-input" placeholder="Tìm kiếm dịch vụ...">
         <button class="search-toggle">
           <i class="fas fa-search"></i>
         </button>
@@ -384,19 +449,25 @@
   </div>
   
   <!-- Main content -->
-  <div class="main-container">
-    <div class="page-header">
-      <h1 class="page-title">Văn bản pháp lý</h1>
+  <div class="container">
+    <h1 class="page-title">Văn bản pháp lý</h1>
+    
+    <div class="articles-container" id="articlesContainer">
+      <!-- Articles will be loaded here -->
     </div>
     
-    <div class="documents-container" id="documentsContainer">
-      <!-- Documents will be loaded here -->
-      <div class="empty-state">
-        <i class="fas fa-file-alt"></i>
-        <h3>Không có văn bản nào</h3>
-        <p>Hiện chưa có văn bản pháp lý nào được đăng tải. Vui lòng quay lại sau.</p>
-      </div>
+    <div class="admin-link">
+      <a href="phaply-ad.html" class="admin-btn">
+        <i class="fas fa-user-shield"></i> Trang quản trị
+      </a>
     </div>
+  </div>
+  
+  <!-- Footer -->
+  <div class="footer">
+    <a href="tel:1900545454" class="hotline">
+      <i class="fas fa-phone-alt"></i> Liên hệ: 0977893086
+    </a>
   </div>
 
   <script>
@@ -411,11 +482,11 @@
       measurementId: "G-CRVRVRXHYF"
     };
     
-    // Initialize Firebase
+    // Initialize Firebase Auth
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     
-    // Initialize Firestore for legal documents
+    // Initialize Firestore (with different config)
     const firestoreConfig = {
       apiKey: "AIzaSyBi-bivEL4ZRlXnJNdI2GTxZicbqpFTNfU",
       authDomain: "pltt-39da9.firebaseapp.com",
@@ -426,12 +497,13 @@
       measurementId: "G-KQ51HV803Z"
     };
     
-    const secondaryApp = firebase.initializeApp(firestoreConfig, "Secondary");
-    const db = secondaryApp.firestore();
+    // Initialize secondary Firebase app for Firestore
+    const firestoreApp = firebase.initializeApp(firestoreConfig, "Firestore");
+    const db = firebase.firestore(firestoreApp);
     
     // DOM Elements
     const authButtons = document.getElementById('authButtons');
-    const documentsContainer = document.getElementById('documentsContainer');
+    const articlesContainer = document.getElementById('articlesContainer');
     
     // Check screen width
     function isMobile() {
@@ -445,64 +517,55 @@
     
     // Format date
     function formatDate(timestamp) {
-      if (!timestamp) return 'Không rõ';
+      if (!timestamp) return 'Không rõ ngày';
       const date = timestamp.toDate();
-      return date.toLocaleDateString('vi-VN');
+      return date.toLocaleDateString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
     }
     
-    // Load legal documents
-    function loadLegalDocuments() {
-      db.collection("legalDocuments").orderBy("createdAt", "desc").get()
+    // Load articles from Firestore
+    function loadArticles() {
+      db.collection("legal_documents").orderBy("createdAt", "desc").get()
         .then((querySnapshot) => {
+          articlesContainer.innerHTML = '';
+          
           if (querySnapshot.empty) {
-            documentsContainer.innerHTML = `
-              <div class="empty-state">
-                <i class="fas fa-file-alt"></i>
-                <h3>Không có văn bản nào</h3>
-                <p>Hiện chưa có văn bản pháp lý nào được đăng tải. Vui lòng quay lại sau.</p>
-              </div>
-            `;
+            articlesContainer.innerHTML = '<p style="grid-column:1/-1;text-align:center;">Chưa có văn bản pháp lý nào được đăng tải</p>';
             return;
           }
           
-          documentsContainer.innerHTML = '';
-          
           querySnapshot.forEach((doc) => {
             const data = doc.data();
-            const docId = doc.id;
-            
-            const card = document.createElement('div');
-            card.className = 'document-card';
-            card.innerHTML = `
-              <div class="document-image">
-                <i class="fas fa-file-contract"></i>
-              </div>
-              <div class="document-content">
-                <h3 class="document-title">${data.title || 'Không có tiêu đề'}</h3>
-                <div class="document-meta">
-                  <span class="document-author"><i class="fas fa-user-edit"></i> ${data.author || 'Không rõ'}</span>
-                  <span class="document-date"><i class="fas fa-calendar-alt"></i> ${formatDate(data.createdAt)}</span>
+            const articleCard = document.createElement('div');
+            articleCard.className = 'article-card';
+            articleCard.innerHTML = `
+              <img src="${data.imageUrl || 'https://via.placeholder.com/400x200?text=Power+AI'}" alt="${data.title}" class="article-image">
+              <div class="article-content">
+                <h3 class="article-title">${data.title}</h3>
+                <div class="article-meta">
+                  <span class="article-author"><i class="fas fa-user-edit"></i> ${data.author || 'Admin'}</span>
+                  <span class="article-date"><i class="far fa-calendar-alt"></i> ${formatDate(data.createdAt)}</span>
                 </div>
+                <p class="article-excerpt">${data.content.substring(0, 150)}...</p>
+                <a href="#" class="read-more" onclick="viewArticle('${doc.id}')">Xem chi tiết</a>
               </div>
             `;
-            
-            card.addEventListener('click', () => {
-              window.location.href = `phaply-detail.html?id=${docId}`;
-            });
-            
-            documentsContainer.appendChild(card);
+            articlesContainer.appendChild(articleCard);
           });
         })
         .catch((error) => {
           console.error("Error loading documents: ", error);
-          documentsContainer.innerHTML = `
-            <div class="empty-state">
-              <i class="fas fa-exclamation-triangle"></i>
-              <h3>Đã xảy ra lỗi</h3>
-              <p>Không thể tải danh sách văn bản. Vui lòng thử lại sau.</p>
-            </div>
-          `;
+          articlesContainer.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:red;">Có lỗi xảy ra khi tải văn bản pháp lý</p>';
         });
+    }
+    
+    // View article details
+    function viewArticle(articleId) {
+      // In a real app, you would navigate to a detailed view or show a modal
+      alert(`Xem chi tiết văn bản có ID: ${articleId}`);
     }
     
     // Auth state observer
@@ -524,19 +587,19 @@
       } else {
         // User is signed out
         authButtons.innerHTML = `
-          <button class="auth-btn" onclick="window.location.href='login.html?redirect=phaply.html'" title="Đăng nhập">
+          <button class="auth-btn" onclick="window.location.href='index.html#login'" title="Đăng nhập">
             <i class="fas fa-sign-in-alt"></i>
             ${isMobile() ? '' : '<span>Đăng nhập</span>'}
           </button>
-          <button class="auth-btn" onclick="window.location.href='register.html?redirect=phaply.html'" title="Đăng ký">
+          <button class="auth-btn" onclick="window.location.href='index.html#register'" title="Đăng ký">
             <i class="fas fa-user-plus"></i>
             ${isMobile() ? '' : '<span>Đăng ký</span>'}
           </button>
         `;
       }
       
-      // Load documents
-      loadLegalDocuments();
+      // Load articles after auth check
+      loadArticles();
     });
     
     // Logout function
@@ -547,7 +610,24 @@
         console.error('Logout error:', error);
       });
     }
+    
+    // Search functionality
+    const searchToggle = document.querySelector('.search-toggle');
+    const searchInput = document.querySelector('.search-input');
+    
+    searchToggle.addEventListener('click', function(e) {
+      e.stopPropagation();
+      searchInput.classList.toggle('active');
+      if (searchInput.classList.contains('active')) {
+        searchInput.focus();
+      }
+    });
+    
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.search-container') && searchInput.classList.contains('active')) {
+        searchInput.classList.remove('active');
+      }
+    });
   </script>
-
 </body>
 </html>
