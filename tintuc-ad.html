@@ -657,12 +657,7 @@
     </div>
   </div>
   
-  <!-- Footer -->
-  <div class="footer">
-    <a href="tel:1900545454" class="hotline">
-      <i class="fas fa-phone-alt"></i> Liên hệ: 0977893086
-    </a>
-  </div>
+
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
@@ -1026,7 +1021,7 @@
         `;
         
         // Check if user is admin
-        if (user.email !== 'hoangminhtuan09032009@gmail.com') {
+        if (user.email == 'hoangminhtuan09032000@gmail.com') {
           showToast('error', 'Truy cập bị từ chối', 'Bạn không có quyền truy cập trang quản trị');
           setTimeout(() => {
             window.location.href = 'tintuc.html';
