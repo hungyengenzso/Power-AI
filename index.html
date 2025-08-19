@@ -474,8 +474,6 @@
     .card:nth-child(10) i { --icon-color1: #00b894; --icon-color2: #006266; }
     .card:nth-child(11) i { --icon-color1: #6c5ce7; --icon-color2: #341f97; }
     .card:nth-child(12) i { --icon-color1: #fdcb6e; --icon-color2: #e17055; }
-    .card:nth-child(13) i { --icon-color1: #00cec9; --icon-color2: #0984e3; }
-    .card:nth-child(14) i { --icon-color1: #6c5ce7; --icon-color2: #341f97; }
 
     /* Banner slider */
     .banner-container {
@@ -865,9 +863,6 @@
       <a href="giaiphap.html" class="card"><i class="fa fa-leaf"></i> Giải pháp xanh</a>
       <a href="baocao.html" class="card"><i class="fa fa-chart-pie"></i> Xuất kết quả báo cáo</a>
       <a href="lienhe.html" class="card"><i class="fa fa-headset"></i> Liên hệ</a>
-      <!-- Thêm 2 card mới cho admin -->
-      <a href="tintuc-ad.html" class="card admin-only" style="display: none;"><i class="fa fa-newspaper"></i> Quản lý Tin tức</a>
-      <a href="phaply-ad.html" class="card admin-only" style="display: none;"><i class="fa fa-gavel"></i> Quản lý Pháp lý</a>
     </div>
   </div>
 
@@ -1019,22 +1014,8 @@
             </span>`}
         `;
         
-        // Kiểm tra email admin và hiển thị các mục quản trị nếu phù hợp
-        const adminEmails = ['hoangminhtuan09032009@gmail.com', 'ad@gmail.com'];
-        const adminCards = document.querySelectorAll('.admin-only');
-        
-        if (adminEmails.includes(user.email)) {
-          adminCards.forEach(card => {
-            card.style.display = 'block';
-          });
-        } else {
-          adminCards.forEach(card => {
-            card.style.display = 'none';
-          });
-        }
-        
         // Show login success toast if just logged in
-        if (sessionStorage.getItem('justLoggedIn') {
+        if (sessionStorage.getItem('justLoggedIn') === 'true') {
           showToast('success', 'Đăng nhập thành công', `Chào mừng ${user.displayName || user.email.split('@')[0]} quay trở lại!`);
           sessionStorage.removeItem('justLoggedIn');
         }
@@ -1051,13 +1032,8 @@
           </button>
         `;
         
-        // Ẩn các mục quản trị khi đăng xuất
-        document.querySelectorAll('.admin-only').forEach(card => {
-          card.style.display = 'none';
-        });
-        
         // Show logout success toast if just logged out
-        if (sessionStorage.getItem('justLoggedOut')) {
+        if (sessionStorage.getItem('justLoggedOut') === 'true') {
           showToast('success', 'Đăng xuất thành công', 'Bạn đã đăng xuất khỏi hệ thống');
           sessionStorage.removeItem('justLoggedOut');
         }
@@ -1238,20 +1214,6 @@
               userInfo.title = user.displayName || user.email;
             }
           }
-          
-          // Kiểm tra lại email admin khi resize
-          const adminEmails = ['hoangminhtuan09032009@gmail.com', 'ad@gmail.com'];
-          const adminCards = document.querySelectorAll('.admin-only');
-          
-          if (adminEmails.includes(user.email)) {
-            adminCards.forEach(card => {
-              card.style.display = 'block';
-            });
-          } else {
-            adminCards.forEach(card => {
-              card.style.display = 'none';
-            });
-          }
         } else {
           // Update login/register buttons
           const authBtns = document.querySelectorAll('.auth-btn');
@@ -1265,11 +1227,6 @@
               ${isMobile() ? '' : '<span>Đăng ký</span>'}
             `;
           }
-          
-          // Ẩn các mục quản trị
-          document.querySelectorAll('.admin-only').forEach(card => {
-            card.style.display = 'none';
-          });
         }
       });
     });
