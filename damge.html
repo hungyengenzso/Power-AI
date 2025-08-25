@@ -23,7 +23,6 @@
       overflow-x: hidden;
     }
 
-    /* Header */
     .header {
       background: linear-gradient(135deg, #4caefe, #2d87e0);
       color: white;
@@ -89,7 +88,6 @@
       animation: pulse 2s infinite;
     }
 
-    /* Auth buttons */
     .auth-buttons {
       display: flex;
       align-items: center;
@@ -125,7 +123,6 @@
       object-fit: cover;
     }
 
-    /* Main content */
     .container {
       max-width: 1000px;
       margin: 20px auto;
@@ -288,7 +285,6 @@
       color: #fdcb6e;
     }
     
-    /* Footer */
     .footer {
       background: #fff;
       padding: 20px;
@@ -340,7 +336,6 @@
       font-size: 16px;
     }
     
-    /* Responsive styles */
     @media (max-width: 768px) {
       .btn-container {
         flex-direction: column;
@@ -359,6 +354,20 @@
       0% { transform: scale(1); }
       50% { transform: scale(1.2); }
       100% { transform: scale(1); }
+    }
+
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
@@ -412,19 +421,25 @@
       </div>
       
       <div class="btn-container">
-        <button class="btn btn-primary" onclick="addSingleData()">
+        <button class="btn btn-primary" onclick="addSingleData()" id="addSingleBtn">
           <i class="fas fa-plus"></i> Thêm dữ liệu
         </button>
-        <button class="btn btn-success" onclick="generateMultipleData()">
+        <button class="btn btn-success" onclick="generateMultipleData()" id="generateMultipleBtn">
           <i class="fas fa-cogs"></i> Tạo nhiều dữ liệu
         </button>
-        <button class="btn btn-danger" onclick="clearAllData()">
+        <button class="btn btn-danger" onclick="clearAllData()" id="clearAllBtn">
           <i class="fas fa-trash"></i> Xóa tất cả
         </button>
       </div>
     </div>
     
     <h2 class="page-title"><i class="fas fa-list"></i> Dữ Liệu Đã Tạo</h2>
+    
+    <div class="btn-container">
+      <button class="btn btn-primary" onclick="loadFakeData()" id="refreshBtn">
+        <i class="fas fa-sync-alt"></i> Làm mới dữ liệu
+      </button>
+    </div>
     
     <table class="data-table">
       <thead>
@@ -436,7 +451,9 @@
         </tr>
       </thead>
       <tbody id="dataTableBody">
-        <!-- Data will be inserted here -->
+        <tr>
+          <td colspan="4" class="text-center">Đang tải dữ liệu...</td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -467,7 +484,6 @@
     // Get current user's data reference
     let currentUser = null;
     let dataRef = null;
-    let fakeData = [];
 
     // Check authentication state
     auth.onAuthStateChanged(async (user) => {
@@ -529,6 +545,22 @@
       }, 5000);
     }
 
+    function setButtonLoading(buttonId, isLoading) {
+      const button = document.getElementById(buttonId);
+      if (isLoading) {
+        button.disabled = true;
+        const originalText = button.innerHTML;
+        button.setAttribute('data-original', originalText);
+        button.innerHTML = `<div class="loading"></div> Đang xử lý...`;
+      } else {
+        button.disabled = false;
+        const originalText = button.getAttribute('data-original');
+        if (originalText) {
+          button.innerHTML = originalText;
+        }
+      }
+    }
+
     async function addSingleData() {
       const kwhValue = parseFloat(document.getElementById('kwhValue').value);
       const timestampInput = document.getElementById('timestamp').value;
@@ -546,6 +578,8 @@
         timestamp = new Date();
       }
       
+      setButtonLoading('addSingleBtn', true);
+      
       try {
         await dataRef.add({
           timestamp: timestamp,
@@ -557,10 +591,12 @@
         
         showAlert('Đã thêm dữ liệu thành công!', 'success');
         document.getElementById('kwhValue').value = '';
-        loadFakeData();
+        await loadFakeData();
       } catch (error) {
         console.error('Lỗi khi thêm dữ liệu:', error);
         showAlert('Có lỗi xảy ra khi thêm dữ liệu: ' + error.message, 'error');
+      } finally {
+        setButtonLoading('addSingleBtn', false);
       }
     }
 
@@ -572,6 +608,8 @@
         showAlert('Số bản ghi phải từ 1 đến 100', 'error');
         return;
       }
+      
+      setButtonLoading('generateMultipleBtn', true);
       
       try {
         const batch = db.batch();
@@ -606,21 +644,25 @@
         
         await batch.commit();
         showAlert(`Đã tạo ${numEntries} bản ghi dữ liệu thành công!`, 'success');
-        loadFakeData();
+        await loadFakeData();
       } catch (error) {
         console.error('Lỗi khi tạo dữ liệu hàng loạt:', error);
         showAlert('Có lỗi xảy ra khi tạo dữ liệu: ' + error.message, 'error');
+      } finally {
+        setButtonLoading('generateMultipleBtn', false);
       }
     }
 
     async function clearAllData() {
-      if (!confirm('BẠN CÓ CHẮC CHẮN MUỐN XÓA TOÀN BỘ DỮ LIỆU?\n\nHành động này sẽ xóa tất cả dữ liệu giả lập, không thể hoàn tác!')) {
+      if (!confirm('BẠN CÓ CHẮC CHẮN MUỐN XÓA TOÀN BỘ DỮ LIỆU GIẢ LẬP?\n\nHành động này sẽ xóa tất cả dữ liệu giả lập, không thể hoàn tác!')) {
         return;
       }
       
+      setButtonLoading('clearAllBtn', true);
+      
       try {
         // Lấy tất cả dữ liệu và lọc phía client
-        const snapshot = await dataRef.orderBy('timestamp', 'desc').limit(100).get();
+        const snapshot = await dataRef.get();
         const batch = db.batch();
         let deleteCount = 0;
         
@@ -639,10 +681,12 @@
           showAlert('Không tìm thấy dữ liệu giả lập để xóa', 'warning');
         }
         
-        loadFakeData();
+        await loadFakeData();
       } catch (error) {
         console.error('Lỗi khi xóa dữ liệu:', error);
         showAlert('Có lỗi xảy ra khi xóa dữ liệu: ' + error.message, 'error');
+      } finally {
+        setButtonLoading('clearAllBtn', false);
       }
     }
 
@@ -650,7 +694,7 @@
       try {
         await dataRef.doc(docId).delete();
         showAlert('Đã xóa dữ liệu thành công!', 'success');
-        loadFakeData();
+        await loadFakeData();
       } catch (error) {
         console.error('Lỗi khi xóa dữ liệu:', error);
         showAlert('Có lỗi xảy ra khi xóa dữ liệu: ' + error.message, 'error');
@@ -658,14 +702,14 @@
     }
 
     async function loadFakeData() {
+      setButtonLoading('refreshBtn', true);
+      const tableBody = document.getElementById('dataTableBody');
+      tableBody.innerHTML = '<tr><td colspan="4" class="text-center">Đang tải dữ liệu...</td></tr>';
+      
       try {
-        // Sửa truy vấn để không cần index phức tạp
-        const snapshot = await dataRef
-          .orderBy('timestamp', 'desc')
-          .limit(50)
-          .get();
+        // Truy vấn đơn giản không cần index
+        const snapshot = await dataRef.get();
         
-        const tableBody = document.getElementById('dataTableBody');
         tableBody.innerHTML = '';
         
         if (snapshot.empty) {
@@ -679,53 +723,68 @@
         
         // Lọc dữ liệu fake trên client side thay vì server side
         let hasFakeData = false;
+        const allData = [];
         
         snapshot.forEach(doc => {
           const data = doc.data();
-          
           // Chỉ hiển thị dữ liệu fake
           if (data.source && (data.source === 'fake_data' || data.source === 'fake_data_batch')) {
-            hasFakeData = true;
-            const timestamp = data.timestamp.toDate();
-            const formattedDate = timestamp.toLocaleDateString('vi-VN', {
-              day: '2-digit',
-              month: '2-digit',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
+            allData.push({
+              id: doc.id,
+              timestamp: data.timestamp,
+              kwh: data.kwh,
+              dataType: data.dataType || 'normal'
             });
-            
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td>${formattedDate}</td>
-              <td class="text-right">${data.kwh.toFixed(2)}</td>
-              <td>${data.dataType || 'normal'}</td>
-              <td class="text-center">
-                <button class="btn btn-danger" onclick="deleteSingleData('${doc.id}')" style="padding: 5px 10px; font-size: 12px;">
-                  <i class="fas fa-trash"></i> Xóa
-                </button>
-              </td>
-            `;
-            
-            tableBody.appendChild(row);
           }
+        });
+        
+        // Sắp xếp theo thời gian (mới nhất trước)
+        allData.sort((a, b) => b.timestamp.toDate() - a.timestamp.toDate());
+        
+        // Hiển thị dữ liệu
+        allData.forEach(item => {
+          hasFakeData = true;
+          const timestamp = item.timestamp.toDate();
+          const formattedDate = timestamp.toLocaleDateString('vi-VN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+          
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${formattedDate}</td>
+            <td class="text-right">${item.kwh.toFixed(2)}</td>
+            <td>${item.dataType}</td>
+            <td class="text-center">
+              <button class="btn btn-danger" onclick="deleteSingleData('${item.id}')" style="padding: 5px 10px; font-size: 12px;">
+                <i class="fas fa-trash"></i> Xóa
+              </button>
+            </td>
+          `;
+          
+          tableBody.appendChild(row);
         });
         
         if (!hasFakeData) {
           tableBody.innerHTML = `
             <tr>
-              <td colspan="4" class="text-center">Chưa có dữ liệu nào được tạo</td>
+              <td colspan="4" class="text-center">Chưa có dữ liệu giả lập nào được tạo</td>
             </tr>
           `;
         }
       } catch (error) {
         console.error('Lỗi khi tải dữ liệu:', error);
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="4" class="text-center">Lỗi khi tải dữ liệu: ${error.message}</td>
+          </tr>
+        `;
         showAlert('Có lỗi xảy ra khi tải dữ liệu: ' + error.message, 'error');
-        
-        // Hiển thị thông báo về index nếu cần
-        if (error.code === 'failed-precondition') {
-          showAlert('Hệ thống cần tạo index. Vui lòng nhấp vào <a href="https://console.firebase.google.com/v1/r/project/scan-text-eccf7/firestore/indexes?create_composite=ClFwcm9qZWN0cy9zY2FuLXRleHQtZWNjZjcvZGF0YWJhc2VzLyhkZWZhdWx0KS9jb2xsZWN0aW9uR3JvdXBzL3NjYW5fZGF0YS9pbmRleGVzL18QARoKCgZzb3VyY2UQARoNCgl0aW1lc3RhbXAQAhoMCghfX25hbWVfXxAC" target="_blank">liên kết này</a> để tạo index tự động.', 'warning');
-        }
+      } finally {
+        setButtonLoading('refreshBtn', false);
       }
     }
 
