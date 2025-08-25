@@ -61,46 +61,6 @@
       margin-left: auto;
     }
     
-    .search-container {
-      display: flex;
-      align-items: center;
-      margin: 0 15px;
-    }
-    
-    .search-input {
-      width: 0;
-      padding: 0;
-      border-radius: 20px;
-      border: none;
-      outline: none;
-      font-size: 14px;
-      transition: all 0.3s ease;
-      opacity: 0;
-      visibility: hidden;
-    }
-    
-    .search-input.active {
-      width: 200px;
-      padding: 8px 15px;
-      opacity: 1;
-      visibility: visible;
-      margin-right: 10px;
-    }
-    
-    .search-toggle {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 18px;
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: transform 0.2s;
-    }
-    
-    .search-toggle:hover {
-      transform: scale(1.1);
-    }
-    
     .notification {
       position: relative;
       flex-shrink: 0;
@@ -156,25 +116,6 @@
       background: rgba(255,255,255,0.3);
     }
 
-    .auth-icon {
-      background: rgba(255,255,255,0.2);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 36px;
-      height: 36px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      margin-left: 10px;
-      transition: all 0.3s;
-    }
-    
-    .auth-icon:hover {
-      background: rgba(255,255,255,0.3);
-    }
-    
     .user-avatar {
       width: 30px;
       height: 30px;
@@ -678,15 +619,26 @@
       }
       
       try {
-        const snapshot = await dataRef.where('source', 'in', ['fake_data', 'fake_data_batch']).get();
+        // Lấy tất cả dữ liệu và lọc phía client
+        const snapshot = await dataRef.orderBy('timestamp', 'desc').limit(100).get();
         const batch = db.batch();
+        let deleteCount = 0;
         
         snapshot.forEach(doc => {
-          batch.delete(doc.ref);
+          const data = doc.data();
+          if (data.source && (data.source === 'fake_data' || data.source === 'fake_data_batch')) {
+            batch.delete(doc.ref);
+            deleteCount++;
+          }
         });
         
-        await batch.commit();
-        showAlert('Đã xóa toàn bộ dữ liệu giả lập thành công!', 'success');
+        if (deleteCount > 0) {
+          await batch.commit();
+          showAlert(`Đã xóa ${deleteCount} bản ghi dữ liệu giả lập thành công!`, 'success');
+        } else {
+          showAlert('Không tìm thấy dữ liệu giả lập để xóa', 'warning');
+        }
+        
         loadFakeData();
       } catch (error) {
         console.error('Lỗi khi xóa dữ liệu:', error);
@@ -707,8 +659,8 @@
 
     async function loadFakeData() {
       try {
+        // Sửa truy vấn để không cần index phức tạp
         const snapshot = await dataRef
-          .where('source', 'in', ['fake_data', 'fake_data_batch'])
           .orderBy('timestamp', 'desc')
           .limit(50)
           .get();
@@ -725,34 +677,55 @@
           return;
         }
         
+        // Lọc dữ liệu fake trên client side thay vì server side
+        let hasFakeData = false;
+        
         snapshot.forEach(doc => {
           const data = doc.data();
-          const timestamp = data.timestamp.toDate();
-          const formattedDate = timestamp.toLocaleDateString('vi-VN', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-          });
           
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${formattedDate}</td>
-            <td class="text-right">${data.kwh.toFixed(2)}</td>
-            <td>${data.dataType || 'normal'}</td>
-            <td class="text-center">
-              <button class="btn btn-danger" onclick="deleteSingleData('${doc.id}')" style="padding: 5px 10px; font-size: 12px;">
-                <i class="fas fa-trash"></i> Xóa
-              </button>
-            </td>
-          `;
-          
-          tableBody.appendChild(row);
+          // Chỉ hiển thị dữ liệu fake
+          if (data.source && (data.source === 'fake_data' || data.source === 'fake_data_batch')) {
+            hasFakeData = true;
+            const timestamp = data.timestamp.toDate();
+            const formattedDate = timestamp.toLocaleDateString('vi-VN', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${formattedDate}</td>
+              <td class="text-right">${data.kwh.toFixed(2)}</td>
+              <td>${data.dataType || 'normal'}</td>
+              <td class="text-center">
+                <button class="btn btn-danger" onclick="deleteSingleData('${doc.id}')" style="padding: 5px 10px; font-size: 12px;">
+                  <i class="fas fa-trash"></i> Xóa
+                </button>
+              </td>
+            `;
+            
+            tableBody.appendChild(row);
+          }
         });
+        
+        if (!hasFakeData) {
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="4" class="text-center">Chưa có dữ liệu nào được tạo</td>
+            </tr>
+          `;
+        }
       } catch (error) {
         console.error('Lỗi khi tải dữ liệu:', error);
         showAlert('Có lỗi xảy ra khi tải dữ liệu: ' + error.message, 'error');
+        
+        // Hiển thị thông báo về index nếu cần
+        if (error.code === 'failed-precondition') {
+          showAlert('Hệ thống cần tạo index. Vui lòng nhấp vào <a href="https://console.firebase.google.com/v1/r/project/scan-text-eccf7/firestore/indexes?create_composite=ClFwcm9qZWN0cy9zY2FuLXRleHQtZWNjZjcvZGF0YWJhc2VzLyhkZWZhdWx0KS9jb2xsZWN0aW9uR3JvdXBzL3NjYW5fZGF0YS9pbmRleGVzL18QARoKCgZzb3VyY2UQARoNCgl0aW1lc3RhbXAQAhoMCghfX25hbWVfXxAC" target="_blank">liên kết này</a> để tạo index tự động.', 'warning');
+        }
       }
     }
 
