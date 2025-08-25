@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Power AI - Fake Data Generator</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+  <style>
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      font-family: 'Arial', sans-serif; 
+    }
+    
+    body { 
+      background: #f5f5f5; 
+      color: #333; 
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #4caefe, #2d87e0);
+      color: white;
+      padding: 12px 5%;
+      display: flex;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      margin-right: auto;
+      cursor: pointer;
+    }
+    
+    .logo i {
+      font-size: 24px;
+      margin-right: 8px;
+    }
+    
+    .logo-text {
+      font-weight: bold;
+      font-size: 18px;
+      white-space: nowrap;
+    }
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+      margin-left: auto;
+    }
+    
+    .search-container {
+      display: flex;
+      align-items: center;
+      margin: 0 15px;
+    }
+    
+    .search-input {
+      width: 0;
+      padding: 0;
+      border-radius: 20px;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      opacity: 0;
+      visibility: hidden;
+    }
+    
+    .search-input.active {
+      width: 200px;
+      padding: 8px 15px;
+      opacity: 1;
+      visibility: visible;
+      margin-right: 10px;
+    }
+    
+    .search-toggle {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: transform 0.2s;
+    }
+    
+    .search-toggle:hover {
+      transform: scale(1.1);
+    }
+    
+    .notification {
+      position: relative;
+      flex-shrink: 0;
+      margin-left: 15px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    
+    .notification:hover {
+      transform: scale(1.1);
+    }
+    
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #ff4757;
+      color: white;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulse 2s infinite;
+    }
+
+    /* Auth buttons */
+    .auth-buttons {
+      display: flex;
+      align-items: center;
+      margin-left: 15px;
+    }
+    
+    .auth-btn {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 14px;
+      margin-left: 10px;
+      cursor: pointer;
+      transition: all 0.3s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 120px;
+    }
+    
+    .auth-btn:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    .auth-icon {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      margin-left: 10px;
+      transition: all 0.3s;
+    }
+    
+    .auth-icon:hover {
+      background: rgba(255,255,255,0.3);
+    }
+    
+    .user-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      margin-left: 10px;
+      cursor: pointer;
+      object-fit: cover;
+    }
+
+    /* Main content */
+    .container {
+      max-width: 1000px;
+      margin: 20px auto;
+      padding: 0 15px;
+    }
+    
+    .page-title {
+      color: #2d87e0;
+      text-align: center;
+      margin-bottom: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 24px;
+    }
+    
+    .form-container {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      margin-bottom: 30px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+    
+    .form-group input:focus, .form-group select:focus {
+      border-color: #4caefe;
+      outline: none;
+    }
+    
+    .btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #4caefe, #2d87e0);
+    }
+    
+    .btn-primary:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+    
+    .btn-danger {
+      background: linear-gradient(135deg, #ff6b6b, #ff4757);
+    }
+    
+    .btn-danger:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+    
+    .btn-success {
+      background: linear-gradient(135deg, #20bf6b, #26de81);
+    }
+    
+    .btn-success:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+    
+    .btn-container {
+      display: flex;
+      gap: 15px;
+      margin-top: 25px;
+    }
+    
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      margin-bottom: 30px;
+    }
+    
+    .data-table th {
+      background: #2d87e0;
+      color: white;
+      padding: 15px;
+      text-align: left;
+    }
+    
+    .data-table td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .data-table tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    
+    .data-table tr:hover {
+      background-color: #f1f1f1;
+    }
+    
+    .text-right {
+      text-align: right;
+    }
+    
+    .text-center {
+      text-align: center;
+    }
+    
+    .alert {
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .alert-success {
+      background-color: rgba(46, 213, 115, 0.1);
+      border-left: 4px solid #2ed573;
+      color: #2ed573;
+    }
+    
+    .alert-error {
+      background-color: rgba(255, 71, 87, 0.1);
+      border-left: 4px solid #ff4757;
+      color: #ff4757;
+    }
+    
+    .alert-warning {
+      background-color: rgba(253, 203, 110, 0.1);
+      border-left: 4px solid #fdcb6e;
+      color: #fdcb6e;
+    }
+    
+    /* Footer */
+    .footer {
+      background: #fff;
+      padding: 20px;
+      text-align: center;
+      border-top: 1px solid #eee;
+      margin-top: 30px;
+      font-size: 15px;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.03);
+    }
+    
+    .hotline {
+      display: inline-flex;
+      align-items: center;
+      background: linear-gradient(135deg, #4caefe, #2d87e0);
+      color: white;
+      padding: 12px 25px;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: bold;
+      box-shadow: 0 4px 15px rgba(76, 174, 254, 0.3);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .hotline::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0));
+      transform: rotate(30deg);
+      transition: all 0.5s;
+    }
+    
+    .hotline:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(76, 174, 254, 0.4);
+    }
+    
+    .hotline:hover::before {
+      left: 100%;
+    }
+    
+    .hotline i {
+      margin-right: 8px;
+      font-size: 16px;
+    }
+    
+    /* Responsive styles */
+    @media (max-width: 768px) {
+      .btn-container {
+        flex-direction: column;
+      }
+      
+      .data-table {
+        font-size: 14px;
+      }
+      
+      .data-table th, .data-table td {
+        padding: 10px;
+      }
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="logo" onclick="goToHome()">
+      <i class="fa-solid fa-bolt"></i>
+      <span class="logo-text">Power AI - Fake Data</span>
+    </div>
+    
+    <div class="header-right">
+      <div class="notification">
+        <i class="fa fa-bell"></i>
+        <span class="notification-badge">3</span>
+      </div>
+      
+      <div class="auth-buttons" id="authButtons"></div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container">
+    <h1 class="page-title"><i class="fas fa-database"></i> Tạo Dữ Liệu Điện Giả Lập</h1>
+    
+    <div id="alertContainer"></div>
+    
+    <div class="form-container">
+      <div class="form-group">
+        <label for="kwhValue">Số điện (kWh)</label>
+        <input type="number" id="kwhValue" step="0.01" min="0" placeholder="Nhập số kWh">
+      </div>
+      
+      <div class="form-group">
+        <label for="timestamp">Thời gian</label>
+        <input type="datetime-local" id="timestamp">
+      </div>
+      
+      <div class="form-group">
+        <label for="dataType">Loại dữ liệu</label>
+        <select id="dataType">
+          <option value="normal">Bình thường</option>
+          <option value="high_consumption">Tiêu thụ cao</option>
+          <option value="low_consumption">Tiêu thụ thấp</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="numEntries">Số bản ghi (nếu tạo nhiều)</label>
+        <input type="number" id="numEntries" min="1" max="100" value="1">
+      </div>
+      
+      <div class="btn-container">
+        <button class="btn btn-primary" onclick="addSingleData()">
+          <i class="fas fa-plus"></i> Thêm dữ liệu
+        </button>
+        <button class="btn btn-success" onclick="generateMultipleData()">
+          <i class="fas fa-cogs"></i> Tạo nhiều dữ liệu
+        </button>
+        <button class="btn btn-danger" onclick="clearAllData()">
+          <i class="fas fa-trash"></i> Xóa tất cả
+        </button>
+      </div>
+    </div>
+    
+    <h2 class="page-title"><i class="fas fa-list"></i> Dữ Liệu Đã Tạo</h2>
+    
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Thời gian</th>
+          <th class="text-right">Số điện (kWh)</th>
+          <th>Loại dữ liệu</th>
+          <th class="text-center">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody id="dataTableBody">
+        <!-- Data will be inserted here -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <a href="tel:0977893086" class="hotline">
+      <i class="fas fa-phone-alt"></i> Liên hệ: 0977893086
+    </a>
+  </div>
+
+  <script>
+    // Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyBXMptx-Tt3dDLmWgRUgyfh2tW2BRGY1KE",
+      authDomain: "scan-text-eccf7.firebaseapp.com",
+      projectId: "scan-text-eccf7",
+      storageBucket: "scan-text-eccf7.appspot.com",
+      messagingSenderId: "116481688073",
+      appId: "1:116481688073:web:a85a3abcec812a9423eed8",
+      measurementId: "G-CRVRVRXHYF"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    
+    // Get current user's data reference
+    let currentUser = null;
+    let dataRef = null;
+    let fakeData = [];
+
+    // Check authentication state
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        currentUser = user;
+        updateAuthButtons(user);
+        initUserData();
+        await loadFakeData();
+      } else {
+        // Redirect to login page if not authenticated
+        window.location.href = "index.html";
+      }
+    });
+
+    function updateAuthButtons(user) {
+      const authButtons = document.getElementById('authButtons');
+      if (user) {
+        authButtons.innerHTML = `
+          <button class="auth-btn" onclick="logout()" title="Đăng xuất">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Đăng xuất</span>
+          </button>
+          ${user.photoURL ? 
+            `<img src="${user.photoURL}" class="user-avatar" title="${user.displayName || user.email}">` : 
+            `<span class="auth-btn" title="${user.displayName || user.email}">
+              <i class="fas fa-user"></i>
+              <span>${user.displayName || user.email.split('@')[0]}</span>
+            </span>`}
+        `;
+      } else {
+        authButtons.innerHTML = `
+          <button class="auth-btn" onclick="window.location.href='index.html'">
+            <i class="fas fa-sign-in-alt"></i>
+            <span>Đăng nhập</span>
+          </button>
+        `;
+      }
+    }
+
+    function initUserData() {
+      // Initialize Firestore references for this user
+      dataRef = db.collection("users").doc(currentUser.uid).collection("scan_data");
+    }
+
+    function showAlert(message, type) {
+      const alertContainer = document.getElementById('alertContainer');
+      const alertDiv = document.createElement('div');
+      alertDiv.className = `alert alert-${type}`;
+      alertDiv.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'exclamation-triangle'}"></i>
+        <span>${message}</span>
+      `;
+      
+      alertContainer.appendChild(alertDiv);
+      
+      // Auto remove after 5 seconds
+      setTimeout(() => {
+        alertDiv.remove();
+      }, 5000);
+    }
+
+    async function addSingleData() {
+      const kwhValue = parseFloat(document.getElementById('kwhValue').value);
+      const timestampInput = document.getElementById('timestamp').value;
+      const dataType = document.getElementById('dataType').value;
+      
+      if (isNaN(kwhValue) || kwhValue <= 0) {
+        showAlert('Vui lòng nhập số điện (kWh) hợp lệ', 'error');
+        return;
+      }
+      
+      let timestamp;
+      if (timestampInput) {
+        timestamp = new Date(timestampInput);
+      } else {
+        timestamp = new Date();
+      }
+      
+      try {
+        await dataRef.add({
+          timestamp: timestamp,
+          kwh: kwhValue,
+          source: 'fake_data',
+          dataType: dataType,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        showAlert('Đã thêm dữ liệu thành công!', 'success');
+        document.getElementById('kwhValue').value = '';
+        loadFakeData();
+      } catch (error) {
+        console.error('Lỗi khi thêm dữ liệu:', error);
+        showAlert('Có lỗi xảy ra khi thêm dữ liệu: ' + error.message, 'error');
+      }
+    }
+
+    async function generateMultipleData() {
+      const numEntries = parseInt(document.getElementById('numEntries').value) || 1;
+      const dataType = document.getElementById('dataType').value;
+      
+      if (numEntries < 1 || numEntries > 100) {
+        showAlert('Số bản ghi phải từ 1 đến 100', 'error');
+        return;
+      }
+      
+      try {
+        const batch = db.batch();
+        const now = new Date();
+        
+        for (let i = 0; i < numEntries; i++) {
+          // Generate random kWh value based on data type
+          let kwhValue;
+          switch(dataType) {
+            case 'high_consumption':
+              kwhValue = (Math.random() * 5 + 1).toFixed(2); // 1-6 kWh
+              break;
+            case 'low_consumption':
+              kwhValue = (Math.random() * 0.5).toFixed(2); // 0-0.5 kWh
+              break;
+            default:
+              kwhValue = (Math.random() * 2 + 0.2).toFixed(2); // 0.2-2.2 kWh
+          }
+          
+          // Create timestamp (spread over the last 7 days)
+          const timestamp = new Date(now.getTime() - Math.random() * 7 * 24 * 60 * 60 * 1000);
+          
+          const docRef = dataRef.doc();
+          batch.set(docRef, {
+            timestamp: timestamp,
+            kwh: parseFloat(kwhValue),
+            source: 'fake_data_batch',
+            dataType: dataType,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        }
+        
+        await batch.commit();
+        showAlert(`Đã tạo ${numEntries} bản ghi dữ liệu thành công!`, 'success');
+        loadFakeData();
+      } catch (error) {
+        console.error('Lỗi khi tạo dữ liệu hàng loạt:', error);
+        showAlert('Có lỗi xảy ra khi tạo dữ liệu: ' + error.message, 'error');
+      }
+    }
+
+    async function clearAllData() {
+      if (!confirm('BẠN CÓ CHẮC CHẮN MUỐN XÓA TOÀN BỘ DỮ LIỆU?\n\nHành động này sẽ xóa tất cả dữ liệu giả lập, không thể hoàn tác!')) {
+        return;
+      }
+      
+      try {
+        const snapshot = await dataRef.where('source', 'in', ['fake_data', 'fake_data_batch']).get();
+        const batch = db.batch();
+        
+        snapshot.forEach(doc => {
+          batch.delete(doc.ref);
+        });
+        
+        await batch.commit();
+        showAlert('Đã xóa toàn bộ dữ liệu giả lập thành công!', 'success');
+        loadFakeData();
+      } catch (error) {
+        console.error('Lỗi khi xóa dữ liệu:', error);
+        showAlert('Có lỗi xảy ra khi xóa dữ liệu: ' + error.message, 'error');
+      }
+    }
+
+    async function deleteSingleData(docId) {
+      try {
+        await dataRef.doc(docId).delete();
+        showAlert('Đã xóa dữ liệu thành công!', 'success');
+        loadFakeData();
+      } catch (error) {
+        console.error('Lỗi khi xóa dữ liệu:', error);
+        showAlert('Có lỗi xảy ra khi xóa dữ liệu: ' + error.message, 'error');
+      }
+    }
+
+    async function loadFakeData() {
+      try {
+        const snapshot = await dataRef
+          .where('source', 'in', ['fake_data', 'fake_data_batch'])
+          .orderBy('timestamp', 'desc')
+          .limit(50)
+          .get();
+        
+        const tableBody = document.getElementById('dataTableBody');
+        tableBody.innerHTML = '';
+        
+        if (snapshot.empty) {
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="4" class="text-center">Chưa có dữ liệu nào được tạo</td>
+            </tr>
+          `;
+          return;
+        }
+        
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const timestamp = data.timestamp.toDate();
+          const formattedDate = timestamp.toLocaleDateString('vi-VN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+          
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${formattedDate}</td>
+            <td class="text-right">${data.kwh.toFixed(2)}</td>
+            <td>${data.dataType || 'normal'}</td>
+            <td class="text-center">
+              <button class="btn btn-danger" onclick="deleteSingleData('${doc.id}')" style="padding: 5px 10px; font-size: 12px;">
+                <i class="fas fa-trash"></i> Xóa
+              </button>
+            </td>
+          `;
+          
+          tableBody.appendChild(row);
+        });
+      } catch (error) {
+        console.error('Lỗi khi tải dữ liệu:', error);
+        showAlert('Có lỗi xảy ra khi tải dữ liệu: ' + error.message, 'error');
+      }
+    }
+
+    function logout() {
+      auth.signOut().then(() => {
+        window.location.href = "index.html";
+      });
+    }
+
+    function goToHome() {
+      window.location.href = "index.html";
+    }
+
+    // Set current datetime as default
+    document.addEventListener('DOMContentLoaded', function() {
+      const now = new Date();
+      // Format to YYYY-MM-DDTHH:MM (removing seconds and milliseconds)
+      const localDatetime = now.toISOString().slice(0, 16);
+      document.getElementById('timestamp').value = localDatetime;
+    });
+  </script>
+</body>
+</html>
