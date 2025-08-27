@@ -378,7 +378,7 @@
       right: 20px;
       font-size: 24px;
       cursor: pointer;
-      color: #777;
+      color: 777;
     }
     
     .document-modal-body {
@@ -605,6 +605,75 @@
       return new Date(date).toLocaleDateString('vi-VN', options);
     }
     
+    // Function to convert Quill Delta to HTML
+    function deltaToHtml(delta) {
+      if (!delta || !delta.ops) return '';
+      
+      let html = '';
+      let inList = false;
+      let listType = '';
+      
+      delta.ops.forEach(op => {
+        if (op.insert) {
+          let text = op.insert;
+          
+          // Apply formatting
+          if (op.attributes) {
+            if (op.attributes.bold) text = `<strong>${text}</strong>`;
+            if (op.attributes.italic) text = `<em>${text}</em>`;
+            if (op.attributes.underline) text = `<u>${text}</u>`;
+            if (op.attributes.strike) text = `<s>${text}</s>`;
+            
+            // Handle headers
+            if (op.attributes.header === 1) text = `<h1>${text}</h1>`;
+            else if (op.attributes.header === 2) text = `<h2>${text}</h2>`;
+            else if (op.attributes.header === 3) text = `<h3>${text}</h3>`;
+            
+            // Handle lists
+            if (op.attributes.list) {
+              const currentListType = op.attributes.list;
+              
+              if (!inList) {
+                // Start a new list
+                inList = true;
+                listType = currentListType;
+                text = currentListType === 'ordered' ? `<ol><li>${text}</li>` : `<ul><li>${text}</li>`;
+              } else if (listType !== currentListType) {
+                // List type changed, close previous and start new
+                text = currentListType === 'ordered' ? `</${listType === 'ordered' ? 'ol' : 'ul'}><ol><li>${text}</li>` : `</${listType === 'ordered' ? 'ol' : 'ul'}><ul><li>${text}</li>`;
+                listType = currentListType;
+              } else {
+                // Continue the same list
+                text = `<li>${text}</li>`;
+              }
+            } else if (inList) {
+              // End the list
+              text = `</${listType === 'ordered' ? 'ol' : 'ul'}>${text}`;
+              inList = false;
+              listType = '';
+            }
+          } else if (inList) {
+            // End the list if no attributes but we were in a list
+            text = `</${listType === 'ordered' ? 'ol' : 'ul'}>${text}`;
+            inList = false;
+            listType = '';
+          }
+          
+          html += text;
+        }
+      });
+      
+      // Close any open list tags
+      if (inList) {
+        html += `</${listType === 'ordered' ? 'ol' : 'ul'}>`;
+      }
+      
+      // Replace newlines with <br> tags
+      html = html.replace(/\n/g, '<br>');
+      
+      return html;
+    }
+    
     // Load documents from Firestore
     function loadDocuments(searchTerm = '') {
       let query = db.collection('legal-documents').orderBy('createdAt', 'desc');
@@ -667,7 +736,21 @@
       modalTitle.textContent = doc.title;
       modalAuthor.innerHTML = `<i class="fas fa-user"></i> ${doc.author}`;
       modalDate.innerHTML = `<i class="fas fa-calendar-alt"></i> ${formatDate(doc.createdAt.toDate())}`;
-      modalContent.innerHTML = doc.content;
+      
+      // Convert Delta content to HTML if needed
+      let contentHtml = '';
+      if (doc.htmlContent) {
+        contentHtml = doc.htmlContent;
+      } else if (doc.content) {
+        try {
+          const delta = typeof doc.content === 'string' ? JSON.parse(doc.content) : doc.content;
+          contentHtml = deltaToHtml(delta);
+        } catch (e) {
+          contentHtml = doc.content; // Fallback to plain text
+        }
+      }
+      
+      modalContent.innerHTML = contentHtml;
       
       documentModal.style.display = 'block';
       document.body.style.overflow = 'hidden';
