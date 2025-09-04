@@ -562,6 +562,14 @@
           <span class="data-label"><i class="fas fa-money-bill-wave"></i> Tổng số tiền điện:</span> 
           <span class="data-value money" id="totalMoney">Đang tải...</span> VND
         </div>
+        <div class="data-item">
+          <span class="data-label"><i class="fas fa-calendar"></i> Tiêu thụ tháng này:</span> 
+          <span class="data-value kwh" id="monthlyKwh">--</span> kWh
+        </div>
+        <div class="data-item">
+          <span class="data-label"><i class="fas fa-money-bill"></i> Tiền điện tháng này:</span> 
+          <span class="data-value money" id="monthlyMoney">--</span> VND
+        </div>
       </div>
 
       <div class="data-box">
@@ -655,9 +663,17 @@
     let currentUser = null;
     let dataRef = null;
     let alertsRef = null;
+    let monthlyDataRef = null;
     
     // Electricity configuration
-    const electricityRate = 3000; // VND/kWh
+    const electricityRates = [
+      { threshold: 50, rate: 1806 },
+      { threshold: 100, rate: 1866 },
+      { threshold: 200, rate: 2167 },
+      { threshold: 300, rate: 2729 },
+      { threshold: 400, rate: 3050 },
+      { threshold: Infinity, rate: 3151 }
+    ];
     const powerAlertThreshold = 0.25; // kW
     let currentSelectedDate = new Date();
     let chart;
@@ -704,6 +720,7 @@
       // Initialize Firestore references for this user
       dataRef = db.collection("users").doc(currentUser.uid).collection("scan_data");
       alertsRef = db.collection("users").doc(currentUser.uid).collection("alerts");
+      monthlyDataRef = db.collection("users").doc(currentUser.uid).collection("monthly_data");
     }
 
     async function init() {
@@ -747,6 +764,53 @@
       });
     }
 
+    // Calculate electricity cost based on tiered pricing
+    function calculateElectricityCost(kwh) {
+      let remainingKwh = kwh;
+      let totalCost = 0;
+      
+      for (let i = 0; i < electricityRates.length && remainingKwh > 0; i++) {
+        const tier = electricityRates[i];
+        const prevThreshold = i === 0 ? 0 : electricityRates[i-1].threshold;
+        const tierSize = tier.threshold - prevThreshold;
+        const tierKwh = Math.min(remainingKwh, tierSize);
+        
+        totalCost += tierKwh * tier.rate;
+        remainingKwh -= tierKwh;
+      }
+      
+      return totalCost;
+    }
+
+    // Get the last reading from previous month
+    async function getLastMonthReading() {
+      const now = new Date();
+      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      
+      // Get the last reading from previous month
+      const snapshot = await dataRef
+        .where("timestamp", "<", firstDayOfMonth)
+        .orderBy("timestamp", "desc")
+        .limit(1)
+        .get();
+      
+      if (snapshot.empty) {
+        // If no data from previous month, get the first reading of this month
+        const firstThisMonth = await dataRef
+          .where("timestamp", ">=", firstDayOfMonth)
+          .orderBy("timestamp", "asc")
+          .limit(1)
+          .get();
+          
+        if (!firstThisMonth.empty) {
+          return firstThisMonth.docs[0].data().kwh;
+        }
+        return 0;
+      }
+      
+      return snapshot.docs[0].data().kwh;
+    }
+
     // Electricity monitoring functions
     async function getLatestKwh() {
       const snapshot = await dataRef.orderBy("timestamp", "desc").limit(2).get();
@@ -762,7 +826,14 @@
       const previous = Math.min(...docs.map(d => d.kwh));
 
       document.getElementById("totalKwh").innerText = latest.toFixed(2);
-      document.getElementById("totalMoney").innerText = (latest * electricityRate).toLocaleString('vi-VN');
+      document.getElementById("totalMoney").innerText = calculateElectricityCost(latest).toLocaleString('vi-VN');
+
+      // Calculate monthly consumption
+      const lastMonthReading = await getLastMonthReading();
+      const monthlyConsumption = Math.max(0, latest - lastMonthReading);
+      
+      document.getElementById("monthlyKwh").innerText = monthlyConsumption.toFixed(2);
+      document.getElementById("monthlyMoney").innerText = calculateElectricityCost(monthlyConsumption).toLocaleString('vi-VN');
 
       await updateDailyData(currentSelectedDate);
 
@@ -799,7 +870,7 @@
 
       const consumed = result.nextDayFirst - result.first;
       document.getElementById("dailyKwh").innerText = consumed.toFixed(2);
-      document.getElementById("dailyMoney").innerText = (consumed * electricityRate).toLocaleString('vi-VN');
+      document.getElementById("dailyMoney").innerText = calculateElectricityCost(consumed).toLocaleString('vi-VN');
     }
 
     async function drawChart() {
