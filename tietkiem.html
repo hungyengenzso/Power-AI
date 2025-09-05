@@ -325,6 +325,7 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 15px;
+      gap: 15px;
     }
     
     .ai-message {
@@ -359,6 +360,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      white-space: nowrap;
     }
     
     .btn-primary {
@@ -485,6 +487,11 @@
       .search-input.active {
         width: 150px;
       }
+      
+      .ai-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
     }
     
     @media (min-width: 992px) {
@@ -527,19 +534,19 @@
       <div class="savings-card">
         <div class="card-header">
           <i class="fas fa-chart-line"></i>
-          <h2>Tiêu thụ tháng này</h2>
+          <h2>Tiêu thụ tuần này</h2>
         </div>
         <div class="savings-item">
           <span class="savings-label"><i class="fas fa-bolt"></i> Số điện đã dùng:</span> 
-          <span class="savings-value kwh" id="monthlyKwh">Đang tải...</span> kWh
+          <span class="savings-value kwh" id="weeklyKwh">Đang tải...</span> kWh
         </div>
         <div class="savings-item">
           <span class="savings-label"><i class="fas fa-money-bill-wave"></i> Tiền điện:</span> 
-          <span class="savings-value money" id="monthlyMoney">Đang tải...</span> VND
+          <span class="savings-value money" id="weeklyMoney">Đang tải...</span> VND
         </div>
         <div class="savings-item">
-          <span class="savings-label"><i class="fas fa-calendar"></i> So với tháng trước:</span> 
-          <span class="savings-value" id="monthlyComparison">Đang tải...</span>
+          <span class="savings-label"><i class="fas fa-calendar"></i> So với tuần trước:</span> 
+          <span class="savings-value" id="weeklyComparison">Đang tải...</span>
         </div>
       </div>
 
@@ -746,50 +753,63 @@
     }
 
     async function refreshAll() {
-      const { currentMonthKwh, lastMonthKwh } = await loadMonthlyData();
-      await drawWeeklyChart(lastMonthKwh);
+      await loadWeeklyData();
+      await drawWeeklyChart();
       await generateAIAdvice();
     }
 
-    async function loadMonthlyData() {
+    // Helper function to get the start of a week (Monday)
+    function getStartOfWeek(date) {
+      const day = date.getDay();
+      const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Adjust to Monday
+      return new Date(date.setDate(diff));
+    }
+
+    async function loadWeeklyData() {
       const now = new Date();
-      const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-      const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+      const currentWeekStart = getStartOfWeek(new Date(now));
+      currentWeekStart.setHours(0, 0, 0, 0);
       
-      // Get current month data
-      const currentMonthSnapshot = await dataRef
-        .where("timestamp", ">=", currentMonthStart)
+      const lastWeekStart = new Date(currentWeekStart);
+      lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+      
+      // Get current week data
+      const currentWeekSnapshot = await dataRef
+        .where("timestamp", ">=", currentWeekStart)
         .orderBy("timestamp", "asc")
         .get();
       
-      let currentMonthKwh = 0;
-      if (!currentMonthSnapshot.empty) {
-        const first = currentMonthSnapshot.docs[0].data().kwh;
-        const last = currentMonthSnapshot.docs[currentMonthSnapshot.docs.length - 1].data().kwh;
-        currentMonthKwh = last - first;
+      let currentWeekKwh = 0;
+      if (!currentWeekSnapshot.empty) {
+        const first = currentWeekSnapshot.docs[0].data().kwh;
+        const last = currentWeekSnapshot.docs[currentWeekSnapshot.docs.length - 1].data().kwh;
+        currentWeekKwh = last - first;
       }
       
-      // Get last month data
-      const lastMonthSnapshot = await dataRef
-        .where("timestamp", ">=", lastMonthStart)
-        .where("timestamp", "<=", lastMonthEnd)
+      // Get last week data
+      const lastWeekEnd = new Date(currentWeekStart);
+      lastWeekEnd.setDate(lastWeekEnd.getDate() - 1);
+      lastWeekEnd.setHours(23, 59, 59, 999);
+      
+      const lastWeekSnapshot = await dataRef
+        .where("timestamp", ">=", lastWeekStart)
+        .where("timestamp", "<=", lastWeekEnd)
         .orderBy("timestamp", "asc")
         .get();
       
-      let lastMonthKwh = 0;
-      if (!lastMonthSnapshot.empty) {
-        const first = lastMonthSnapshot.docs[0].data().kwh;
-        const last = lastMonthSnapshot.docs[lastMonthSnapshot.docs.length - 1].data().kwh;
-        lastMonthKwh = last - first;
+      let lastWeekKwh = 0;
+      if (!lastWeekSnapshot.empty) {
+        const first = lastWeekSnapshot.docs[0].data().kwh;
+        const last = lastWeekSnapshot.docs[lastWeekSnapshot.docs.length - 1].data().kwh;
+        lastWeekKwh = last - first;
       }
       
       // Update UI
-      document.getElementById("monthlyKwh").innerText = currentMonthKwh.toFixed(2);
-      document.getElementById("monthlyMoney").innerText = (currentMonthKwh * electricityRate).toLocaleString('vi-VN');
+      document.getElementById("weeklyKwh").innerText = currentWeekKwh.toFixed(2);
+      document.getElementById("weeklyMoney").innerText = (currentWeekKwh * electricityRate).toLocaleString('vi-VN');
       
-      const comparison = currentMonthKwh - lastMonthKwh;
-      const comparisonElement = document.getElementById("monthlyComparison");
+      const comparison = currentWeekKwh - lastWeekKwh;
+      const comparisonElement = document.getElementById("weeklyComparison");
       
       if (comparison > 0) {
         comparisonElement.innerHTML = `<span style="color: #e84393;">Tăng ${Math.abs(comparison).toFixed(2)} kWh</span>`;
@@ -799,13 +819,14 @@
         comparisonElement.innerHTML = "Không thay đổi";
       }
       
-      // Calculate potential savings based on last month's consumption minus 5%
-      const potentialKwh = lastMonthKwh * savingTargetPercentage;
+      // Calculate potential savings - use last week's data if available, otherwise use current week -5%
+      const baseKwh = lastWeekKwh > 0 ? lastWeekKwh : currentWeekKwh;
+      const potentialKwh = baseKwh * savingTargetPercentage;
       document.getElementById("potentialKwh").innerText = potentialKwh.toFixed(2);
       document.getElementById("potentialMoney").innerText = (potentialKwh * electricityRate).toLocaleString('vi-VN');
       document.getElementById("savingPercentage").innerText = `${(savingTargetPercentage * 100).toFixed(0)}%`;
       
-      return { currentMonthKwh, lastMonthKwh };
+      return { currentWeekKwh, lastWeekKwh };
     }
 
     async function getLastSixWeeksData() {
@@ -813,8 +834,13 @@
       const weeksData = [];
       
       for (let i = 5; i >= 0; i--) {
-        const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (i * 7) - 6);
-        const weekEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (i * 7));
+        const weekStart = getStartOfWeek(new Date(now));
+        weekStart.setDate(weekStart.getDate() - (i * 7));
+        weekStart.setHours(0, 0, 0, 0);
+        
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 6);
+        weekEnd.setHours(23, 59, 59, 999);
         
         const snapshot = await dataRef
           .where("timestamp", ">=", weekStart)
@@ -829,17 +855,32 @@
           weekKwh = last - first;
         }
         
+        // Calculate target for this week (previous week's consumption -5%)
+        let targetKwh = 0;
+        if (i > 0) {
+          // For weeks with previous data, target is previous week -5%
+          targetKwh = weeksData[5 - i - 1].kwh * (1 - savingTargetPercentage);
+        } else {
+          // For current week, target is last week -5% (if available)
+          if (weeksData.length > 0) {
+            targetKwh = weeksData[weeksData.length - 1].kwh * (1 - savingTargetPercentage);
+          } else {
+            // If no previous data, set target to current week -5%
+            targetKwh = weekKwh * (1 - savingTargetPercentage);
+          }
+        }
+        
         weeksData.push({
           week: `Tuần ${6-i}`,
           kwh: weekKwh,
-          target: weekKwh * (1 - savingTargetPercentage)
+          target: targetKwh
         });
       }
       
       return weeksData;
     }
 
-    async function drawWeeklyChart(lastMonthKwh) {
+    async function drawWeeklyChart() {
       const weeksData = await getLastSixWeeksData();
       
       if (weeklyChart) weeklyChart.destroy();
@@ -913,19 +954,19 @@
       
       try {
         // Get data for AI analysis
-        const { currentMonthKwh, lastMonthKwh } = await loadMonthlyData();
+        const { currentWeekKwh, lastWeekKwh } = await loadWeeklyData();
         const weeksData = await getLastSixWeeksData();
         
         // Simulate AI analysis (in a real app, this would call an AI API)
         // For demo purposes, we'll use predefined responses based on the data
         
         // Usage analysis
-        const usageTrend = currentMonthKwh > lastMonthKwh ? 'tăng' : 'giảm';
-        const usageDiff = Math.abs(currentMonthKwh - lastMonthKwh);
+        const usageTrend = currentWeekKwh > lastWeekKwh ? 'tăng' : 'giảm';
+        const usageDiff = Math.abs(currentWeekKwh - lastWeekKwh);
         document.getElementById('usageAnalysis').innerHTML = `
-          Tháng này bạn đã tiêu thụ <strong>${currentMonthKwh.toFixed(2)} kWh</strong>, 
-          ${usageTrend} <strong>${usageDiff.toFixed(2)} kWh</strong> so với tháng trước.<br><br>
-          ${currentMonthKwh > lastMonthKwh ? 
+          Tuần này bạn đã tiêu thụ <strong>${currentWeekKwh.toFixed(2)} kWh</strong>, 
+          ${usageTrend} <strong>${usageDiff.toFixed(2)} kWh</strong> so với tuần trước.<br><br>
+          ${currentWeekKwh > lastWeekKwh ? 
             'Bạn đang có xu hướng sử dụng điện nhiều hơn. Hãy kiểm tra các thiết bị điện trong nhà.' : 
             'Bạn đang đi đúng hướng trong việc tiết kiệm điện. Tiếp tục phát huy!'}
         `;
@@ -935,7 +976,7 @@
         document.getElementById('deviceImprovement').innerHTML = `
           ${peakWeek.week} là tuần bạn tiêu thụ điện nhiều nhất (${peakWeek.kwh.toFixed(2)} kWh).<br><br>
           <strong>Lời khuyên:</strong> 
-          ${peakWeek.kwh > 50 ? 
+          ${peakWeek.kwh > 100 ? 
             'Bạn nên kiểm tra các thiết bị điện công suất cao như điều hòa, máy nước nóng, tủ lạnh cũ.' : 
             'Các thiết bị điện của bạn đang hoạt động khá hiệu quả. Có thể cân nhắc thay thế bóng đèn bằng đèn LED nếu chưa.'}
         `;
@@ -945,17 +986,18 @@
         document.getElementById('timeOptimization').innerHTML = `
           Trung bình mỗi tuần bạn tiêu thụ khoảng <strong>${avgWeeklyKwh.toFixed(2)} kWh</strong>.<br><br>
           <strong>Lời khuyên:</strong> 
-          ${avgWeeklyKwh > 40 ? 
+          ${avgWeeklyKwh > 50 ? 
             'Hãy sử dụng các thiết bị điện vào giờ thấp điểm (sau 22h hoặc trước 17h) để tiết kiệm chi phí.' : 
             'Bạn đang sử dụng điện khá hợp lý. Có thể tắt các thiết bị không cần thiết khi không sử dụng để tiết kiệm thêm.'}
         `;
         
         // Saving estimation
-        const potentialMonthlySaving = lastMonthKwh * savingTargetPercentage;
+        const baseKwh = lastWeekKwh > 0 ? lastWeekKwh : currentWeekKwh;
+        const potentialWeeklySaving = baseKwh * savingTargetPercentage;
         document.getElementById('savingEstimation').innerHTML = `
-          Với các biện pháp tiết kiệm, bạn có thể giảm <strong>${potentialMonthlySaving.toFixed(2)} kWh</strong> mỗi tháng, 
-          tương đương <strong>${(potentialMonthlySaving * electricityRate).toLocaleString('vi-VN')} VND</strong>.<br><br>
-          <strong>Mục tiêu:</strong> Giảm ${(savingTargetPercentage * 100).toFixed(0)}% tiêu thụ điện so với tháng trước.
+          Với các biện pháp tiết kiệm, bạn có thể giảm <strong>${potentialWeeklySaving.toFixed(2)} kWh</strong> mỗi tuần, 
+          tương đương <strong>${(potentialWeeklySaving * electricityRate).toLocaleString('vi-VN')} VND</strong>.<br><br>
+          <strong>Mục tiêu:</strong> Giảm ${(savingTargetPercentage * 100).toFixed(0)}% tiêu thụ điện so với tuần trước.
         `;
         
       } catch (error) {
