@@ -325,7 +325,6 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 15px;
-      gap: 15px;
     }
     
     .ai-message {
@@ -360,7 +359,6 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      white-space: nowrap;
     }
     
     .btn-primary {
@@ -486,11 +484,6 @@
       
       .search-input.active {
         width: 150px;
-      }
-      
-      .ai-header {
-        flex-direction: column;
-        align-items: flex-start;
       }
     }
     
@@ -758,24 +751,34 @@
       await generateAIAdvice();
     }
 
-    // Helper function to get the start of a week (Monday)
-    function getStartOfWeek(date) {
-      const day = date.getDay();
-      const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Adjust to Monday
-      return new Date(date.setDate(diff));
+    // Helper function to get start and end of a week
+    function getWeekRange(weekOffset = 0) {
+      const now = new Date();
+      const currentDay = now.getDay(); // 0 (Sunday) to 6 (Saturday)
+      const currentDate = now.getDate();
+      
+      // Calculate start of this week (Monday)
+      const startOfThisWeek = new Date(now);
+      startOfThisWeek.setDate(currentDate - currentDay + (currentDay === 0 ? -6 : 1));
+      startOfThisWeek.setHours(0, 0, 0, 0);
+      
+      // Apply week offset
+      const startOfWeek = new Date(startOfThisWeek);
+      startOfWeek.setDate(startOfThisWeek.getDate() - (weekOffset * 7));
+      
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      endOfWeek.setHours(23, 59, 59, 999);
+      
+      return { start: startOfWeek, end: endOfWeek };
     }
 
     async function loadWeeklyData() {
-      const now = new Date();
-      const currentWeekStart = getStartOfWeek(new Date(now));
-      currentWeekStart.setHours(0, 0, 0, 0);
-      
-      const lastWeekStart = new Date(currentWeekStart);
-      lastWeekStart.setDate(lastWeekStart.getDate() - 7);
-      
       // Get current week data
+      const currentWeek = getWeekRange(0);
       const currentWeekSnapshot = await dataRef
-        .where("timestamp", ">=", currentWeekStart)
+        .where("timestamp", ">=", currentWeek.start)
+        .where("timestamp", "<=", currentWeek.end)
         .orderBy("timestamp", "asc")
         .get();
       
@@ -787,13 +790,10 @@
       }
       
       // Get last week data
-      const lastWeekEnd = new Date(currentWeekStart);
-      lastWeekEnd.setDate(lastWeekEnd.getDate() - 1);
-      lastWeekEnd.setHours(23, 59, 59, 999);
-      
+      const lastWeek = getWeekRange(1);
       const lastWeekSnapshot = await dataRef
-        .where("timestamp", ">=", lastWeekStart)
-        .where("timestamp", "<=", lastWeekEnd)
+        .where("timestamp", ">=", lastWeek.start)
+        .where("timestamp", "<=", lastWeek.end)
         .orderBy("timestamp", "asc")
         .get();
       
@@ -819,9 +819,11 @@
         comparisonElement.innerHTML = "Không thay đổi";
       }
       
-      // Calculate potential savings - use last week's data if available, otherwise use current week -5%
-      const baseKwh = lastWeekKwh > 0 ? lastWeekKwh : currentWeekKwh;
+      // Calculate potential savings
+      // Use last week's data if available, otherwise use current week minus 5%
+      let baseKwh = lastWeekKwh > 0 ? lastWeekKwh : currentWeekKwh;
       const potentialKwh = baseKwh * savingTargetPercentage;
+      
       document.getElementById("potentialKwh").innerText = potentialKwh.toFixed(2);
       document.getElementById("potentialMoney").innerText = (potentialKwh * electricityRate).toLocaleString('vi-VN');
       document.getElementById("savingPercentage").innerText = `${(savingTargetPercentage * 100).toFixed(0)}%`;
@@ -830,21 +832,13 @@
     }
 
     async function getLastSixWeeksData() {
-      const now = new Date();
       const weeksData = [];
       
       for (let i = 5; i >= 0; i--) {
-        const weekStart = getStartOfWeek(new Date(now));
-        weekStart.setDate(weekStart.getDate() - (i * 7));
-        weekStart.setHours(0, 0, 0, 0);
-        
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekEnd.getDate() + 6);
-        weekEnd.setHours(23, 59, 59, 999);
-        
+        const weekRange = getWeekRange(i);
         const snapshot = await dataRef
-          .where("timestamp", ">=", weekStart)
-          .where("timestamp", "<=", weekEnd)
+          .where("timestamp", ">=", weekRange.start)
+          .where("timestamp", "<=", weekRange.end)
           .orderBy("timestamp", "asc")
           .get();
         
@@ -855,23 +849,26 @@
           weekKwh = last - first;
         }
         
-        // Calculate target for this week (previous week's consumption -5%)
+        // Calculate target for this week (previous week minus 5%)
         let targetKwh = 0;
         if (i > 0) {
-          // For weeks with previous data, target is previous week -5%
-          targetKwh = weeksData[5 - i - 1].kwh * (1 - savingTargetPercentage);
+          // For previous weeks, use the actual consumption of the following week as reference
+          const followingWeekData = weeksData[5 - i] || { kwh: weekKwh };
+          targetKwh = followingWeekData.kwh * (1 - savingTargetPercentage);
         } else {
-          // For current week, target is last week -5% (if available)
+          // For current week, use last week's data if available
           if (weeksData.length > 0) {
             targetKwh = weeksData[weeksData.length - 1].kwh * (1 - savingTargetPercentage);
           } else {
-            // If no previous data, set target to current week -5%
             targetKwh = weekKwh * (1 - savingTargetPercentage);
           }
         }
         
+        // Format week label
+        const weekLabel = `Tuần ${i > 0 ? i : 'này'}`;
+        
         weeksData.push({
-          week: `Tuần ${6-i}`,
+          week: weekLabel,
           kwh: weekKwh,
           target: targetKwh
         });
@@ -992,8 +989,7 @@
         `;
         
         // Saving estimation
-        const baseKwh = lastWeekKwh > 0 ? lastWeekKwh : currentWeekKwh;
-        const potentialWeeklySaving = baseKwh * savingTargetPercentage;
+        const potentialWeeklySaving = lastWeekKwh > 0 ? lastWeekKwh * savingTargetPercentage : currentWeekKwh * savingTargetPercentage;
         document.getElementById('savingEstimation').innerHTML = `
           Với các biện pháp tiết kiệm, bạn có thể giảm <strong>${potentialWeeklySaving.toFixed(2)} kWh</strong> mỗi tuần, 
           tương đương <strong>${(potentialWeeklySaving * electricityRate).toLocaleString('vi-VN')} VND</strong>.<br><br>
