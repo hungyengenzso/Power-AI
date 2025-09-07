@@ -590,6 +590,15 @@
       font-size: 16px;
     }
 
+    /* Admin section */
+    .admin-section {
+      display: none;
+    }
+    
+    .admin-section.visible {
+      display: block;
+    }
+
     /* Responsive */
     @media (max-width: 600px) {
       .auth-btn span {
@@ -805,7 +814,7 @@
         </button>
       </div>
       
-      <div class="notification">
+      <div class="notification" id="notificationBtn">
         <i class="fa fa-bell"></i>
         <span class="notification-badge">3</span>
       </div>
@@ -843,6 +852,16 @@
     </div>
   </div>
 
+  <!-- Admin section (hidden by default) -->
+  <div class="grid-container admin-section" id="adminSection">
+    <h2 class="section-title">QUẢN TRỊ HỆ THỐNG</h2>
+    <div class="grid">
+      <a href="damge.html" class="card"><i class="fa fa-database"></i> Tạo dữ liệu giả lập</a>
+      <a href="tintuc-ad.html" class="card"><i class="fa fa-newspaper"></i> Quản trị tin tức</a>
+      <a href="phaply-ad.html" class="card"><i class="fa fa-file-contract"></i> Quản trị pháp lý</a>
+    </div>
+  </div>
+
   <!-- Grid 1 -->
   <div class="grid-container">
     <h2 class="section-title">Dịch vụ chính</h2>
@@ -869,7 +888,7 @@
   <!-- Hotline -->
   <div class="footer">
     <a href="tel:1900545454" class="hotline">
-      <i class="fas fa-phone-alt"></i> Liên hệ: 0393100508
+      <i class="fas fa-phone-alt"></i> Liên hệ: 0977893086
     </a>
   </div>
 
@@ -957,6 +976,24 @@
     const toastTitle = document.getElementById('toastTitle');
     const toastMessage = document.getElementById('toastMessage');
     const toastClose = document.getElementById('toastClose');
+    const notificationBtn = document.getElementById('notificationBtn');
+    const adminSection = document.getElementById('adminSection');
+    
+    // Check if user is admin
+    function isAdmin(user) {
+      return user && user.email === 'admin@test.com';
+    }
+    
+    // Toggle admin section visibility
+    function toggleAdminSection() {
+      if (adminSection.classList.contains('visible')) {
+        adminSection.classList.remove('visible');
+        localStorage.setItem('adminSectionVisible', 'false');
+      } else {
+        adminSection.classList.add('visible');
+        localStorage.setItem('adminSectionVisible', 'true');
+      }
+    }
     
     // Check screen width
     function isMobile() {
@@ -1014,6 +1051,17 @@
             </span>`}
         `;
         
+        // Show admin section if user is admin
+        if (isAdmin(user)) {
+          const adminSectionVisible = localStorage.getItem('adminSectionVisible') === 'true';
+          if (adminSectionVisible) {
+            adminSection.classList.add('visible');
+          }
+          
+          // Add click event to notification button to toggle admin section
+          notificationBtn.addEventListener('click', toggleAdminSection);
+        }
+        
         // Show login success toast if just logged in
         if (sessionStorage.getItem('justLoggedIn') === 'true') {
           showToast('success', 'Đăng nhập thành công', `Chào mừng ${user.displayName || user.email.split('@')[0]} quay trở lại!`);
@@ -1031,6 +1079,12 @@
             ${isMobile() ? '' : '<span>Đăng ký</span>'}
           </button>
         `;
+        
+        // Hide admin section
+        adminSection.classList.remove('visible');
+        
+        // Remove admin toggle event
+        notificationBtn.removeEventListener('click', toggleAdminSection);
         
         // Show logout success toast if just logged out
         if (sessionStorage.getItem('justLoggedOut') === 'true') {
