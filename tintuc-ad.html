@@ -656,8 +656,6 @@
       <i class="fas fa-times"></i>
     </div>
   </div>
-  
-
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
@@ -668,17 +666,16 @@
   
   <script>
     // Initialize Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyAkQmLs3LiuigjfPm-IfUBQHA9R_bs6Kbk",
-  authDomain: "scan-text-f0a13.firebaseapp.com",
-  projectId: "scan-text-f0a13",
-  storageBucket: "scan-text-f0a13.firebasestorage.app",
-  messagingSenderId: "698160614553",
-  appId: "1:698160614553:web:984e6e59bed8f93a74fc08",
-  measurementId: "G-C1EYX3NNLS"
-};
+    const firebaseConfig = {
+      apiKey: "AIzaSyAkQmLs3LiuigjfPm-IfUBQHA9R_bs6Kbk",
+      authDomain: "scan-text-f0a13.firebaseapp.com",
+      projectId: "scan-text-f0a13",
+      storageBucket: "scan-text-f0a13.firebasestorage.app",
+      messagingSenderId: "698160614553",
+      appId: "1:698160614553:web:984e6e59bed8f93a74fc08",
+      measurementId: "G-C1EYX3NNLS"
+    };
 
-    
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
@@ -739,6 +736,72 @@ const firebaseConfig = {
     let currentNewsId = null;
     let newsItems = [];
     
+    // ==================== NEW: TẠO COLLECTION 'NEWS' NẾU CHƯA TỒN TẠI ====================
+    async function initializeNewsCollection() {
+      try {
+        console.log('🔍 Kiểm tra collection news...');
+        
+        // Thử đọc collection news để kiểm tra tồn tại
+        const snapshot = await db.collection('news').limit(1).get();
+        
+        if (snapshot.empty) {
+          console.log('📝 Collection news trống, đang thêm dữ liệu mẫu...');
+          
+          // Thêm dữ liệu mẫu
+          const sampleNews = {
+            title: "Chào mừng đến với Power AI",
+            author: "Admin",
+            content: JSON.stringify({ ops: [{ insert: "Đây là tin tức mẫu. Hãy thêm tin tức mới qua trang quản trị!\n" }] }),
+            htmlContent: "<p>Đây là tin tức mẫu. Hãy thêm tin tức mới qua trang quản trị!</p>",
+            keywords: ["chào mừng", "power ai", "tin đầu tiên", "mẫu"],
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          };
+          
+          await db.collection('news').add(sampleNews);
+          console.log('✅ Đã thêm tin tức mẫu thành công');
+          showToast('success', 'Khởi tạo', 'Đã tạo collection news với dữ liệu mẫu');
+        } else {
+          console.log('✅ Collection news đã tồn tại');
+        }
+        
+        return true;
+      } catch (error) {
+        console.error('❌ Lỗi khởi tạo collection news:', error);
+        
+        // Hiển thị thông báo lỗi chi tiết
+        if (error.code === 'permission-denied') {
+          showToast('error', 'Lỗi quyền truy cập', 'Vui lòng kiểm tra Firebase Security Rules');
+        } else if (error.code === 'not-found') {
+          showToast('error', 'Lỗi kết nối', 'Không thể kết nối đến Firestore');
+        } else {
+          showToast('error', 'Lỗi hệ thống', error.message);
+        }
+        
+        return false;
+      }
+    }
+
+    // ==================== NEW: KIỂM TRA KẾT NỐI FIREBASE ====================
+    async function testFirebaseConnection() {
+      try {
+        console.log('🧪 Testing Firebase connection...');
+        
+        // Test 1: Kiểm tra collection tồn tại
+        const collections = await db.listCollections();
+        console.log('📂 Collections available:', collections.map(c => c.id));
+        
+        // Test 2: Thử đọc dữ liệu
+        const testRead = await db.collection('news').limit(1).get();
+        console.log('📖 Read test:', testRead.empty ? 'No documents' : 'Documents found');
+        
+        return true;
+      } catch (error) {
+        console.error('❌ Firebase connection test failed:', error);
+        return false;
+      }
+    }
+    
     // Check screen width
     function isMobile() {
       return window.innerWidth <= 600;
@@ -785,67 +848,82 @@ const firebaseConfig = {
     });
     
     // Load news from Firestore
-    function loadNews() {
-      db.collection('news').orderBy('createdAt', 'desc').get()
-        .then((querySnapshot) => {
-          newsTableBody.innerHTML = '';
-          newsItems = [];
+    async function loadNews() {
+      try {
+        console.log('📰 Đang tải tin tức...');
+        
+        const querySnapshot = await db.collection('news').orderBy('createdAt', 'desc').get();
+        newsTableBody.innerHTML = '';
+        newsItems = [];
+        
+        if (querySnapshot.empty) {
+          emptyState.style.display = 'block';
+          console.log('ℹ️ Không có tin tức nào');
+          return;
+        }
+        
+        emptyState.style.display = 'none';
+        console.log(`✅ Đã tải ${querySnapshot.size} tin tức`);
+        
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          newsItems.push({
+            id: doc.id,
+            ...data
+          });
           
-          if (querySnapshot.empty) {
-            emptyState.style.display = 'block';
-            return;
-          }
-          
-          emptyState.style.display = 'none';
-          
-          querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            newsItems.push({
-              id: doc.id,
-              ...data
-            });
-            
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td>${data.title}</td>
-              <td>${data.author}</td>
-              <td>${formatDate(data.createdAt.toDate())}</td>
-              <td>
-                <div class="actions">
-                  <div class="action-btn edit-btn" data-id="${doc.id}">
-                    <i class="fas fa-edit"></i>
-                  </div>
-                  <div class="action-btn delete-btn" data-id="${doc.id}">
-                    <i class="fas fa-trash"></i>
-                  </div>
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${data.title}</td>
+            <td>${data.author}</td>
+            <td>${formatDate(data.createdAt?.toDate() || new Date())}</td>
+            <td>
+              <div class="actions">
+                <div class="action-btn edit-btn" data-id="${doc.id}">
+                  <i class="fas fa-edit"></i>
                 </div>
-              </td>
-            `;
-            
-            newsTableBody.appendChild(row);
-          });
+                <div class="action-btn delete-btn" data-id="${doc.id}">
+                  <i class="fas fa-trash"></i>
+                </div>
+              </div>
+            </td>
+          `;
           
-          // Add event listeners to edit and delete buttons
-          document.querySelectorAll('.edit-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-              e.stopPropagation();
-              const id = btn.getAttribute('data-id');
-              editNews(id);
-            });
-          });
-          
-          document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-              e.stopPropagation();
-              const id = btn.getAttribute('data-id');
-              confirmDeleteNews(id);
-            });
-          });
-        })
-        .catch((error) => {
-          console.error("Error loading news: ", error);
-          showToast('error', 'Lỗi', 'Không thể tải danh sách tin tức');
+          newsTableBody.appendChild(row);
         });
+        
+        // Add event listeners to edit and delete buttons
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = btn.getAttribute('data-id');
+            editNews(id);
+          });
+        });
+        
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = btn.getAttribute('data-id');
+            confirmDeleteNews(id);
+          });
+        });
+        
+      } catch (error) {
+        console.error("❌ Error loading news: ", error);
+        showToast('error', 'Lỗi tải tin tức', 'Không thể tải danh sách tin tức');
+        
+        // Hiển thị empty state với nút thử lại
+        emptyState.style.display = 'block';
+        emptyState.innerHTML = `
+          <i class="fas fa-exclamation-triangle"></i>
+          <h3>Lỗi tải dữ liệu</h3>
+          <p>Không thể kết nối đến cơ sở dữ liệu</p>
+          <button onclick="loadNews()" class="btn" style="margin-top: 15px;">
+            <i class="fas fa-redo"></i> Thử lại
+          </button>
+        `;
+      }
     }
     
     // Add new news
@@ -853,6 +931,7 @@ const firebaseConfig = {
       currentNewsId = null;
       newsForm.reset();
       quill.setContents([]);
+      document.getElementById('modalTitle').textContent = 'Thêm tin tức mới';
       newsTitle.focus();
       newsModal.style.display = 'block';
       document.body.style.overflow = 'hidden';
@@ -867,12 +946,17 @@ const firebaseConfig = {
       newsId.value = id;
       newsTitle.value = news.title;
       newsAuthor.value = news.author;
+      document.getElementById('modalTitle').textContent = 'Chỉnh sửa tin tức';
       
       try {
-        const content = JSON.parse(news.content);
-        quill.setContents(content);
+        if (news.content) {
+          const content = JSON.parse(news.content);
+          quill.setContents(content);
+        } else {
+          quill.setText(news.htmlContent || '');
+        }
       } catch (e) {
-        quill.setText(news.content);
+        quill.setText(news.htmlContent || news.content || '');
       }
       
       newsModal.style.display = 'block';
@@ -880,14 +964,14 @@ const firebaseConfig = {
     }
     
     // Save news
-    function saveNews() {
+    async function saveNews() {
       const title = newsTitle.value.trim();
       const author = newsAuthor.value.trim();
       const content = JSON.stringify(quill.getContents());
       const htmlContent = quill.root.innerHTML;
       
       if (!title || !author || quill.getText().trim().length < 10) {
-        showToast('error', 'Lỗi', 'Vui lòng điền đầy đủ thông tin và nội dung');
+        showToast('error', 'Lỗi', 'Vui lòng điền đầy đủ thông tin và nội dung (ít nhất 10 ký tự)');
         return;
       }
       
@@ -900,34 +984,31 @@ const firebaseConfig = {
         content,
         htmlContent,
         keywords,
-        createdAt: currentNewsId ? firebase.firestore.FieldValue.serverTimestamp() : firebase.firestore.FieldValue.serverTimestamp(),
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       };
       
-      if (currentNewsId) {
-        // Update existing news
-        db.collection('news').doc(currentNewsId).update(newsData)
-          .then(() => {
-            showToast('success', 'Thành công', 'Cập nhật tin tức thành công');
-            closeNewsModal();
-            loadNews();
-          })
-          .catch((error) => {
-            console.error("Error updating news: ", error);
-            showToast('error', 'Lỗi', 'Cập nhật tin tức thất bại');
-          });
-      } else {
-        // Add new news
-        db.collection('news').add(newsData)
-          .then(() => {
-            showToast('success', 'Thành công', 'Thêm tin tức thành công');
-            closeNewsModal();
-            loadNews();
-          })
-          .catch((error) => {
-            console.error("Error adding news: ", error);
-            showToast('error', 'Lỗi', 'Thêm tin tức thất bại');
-          });
+      // Thêm createdAt cho tin tức mới
+      if (!currentNewsId) {
+        newsData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      }
+      
+      try {
+        if (currentNewsId) {
+          // Update existing news
+          await db.collection('news').doc(currentNewsId).update(newsData);
+          showToast('success', 'Thành công', 'Cập nhật tin tức thành công');
+        } else {
+          // Add new news
+          await db.collection('news').add(newsData);
+          showToast('success', 'Thành công', 'Thêm tin tức thành công');
+        }
+        
+        closeNewsModal();
+        await loadNews();
+        
+      } catch (error) {
+        console.error("❌ Error saving news: ", error);
+        showToast('error', 'Lỗi', currentNewsId ? 'Cập nhật tin tức thất bại' : 'Thêm tin tức thất bại');
       }
     }
     
@@ -961,17 +1042,16 @@ const firebaseConfig = {
     }
     
     // Delete news
-    function deleteNews() {
-      db.collection('news').doc(currentNewsId).delete()
-        .then(() => {
-          showToast('success', 'Thành công', 'Xóa tin tức thành công');
-          closeConfirmationModal();
-          loadNews();
-        })
-        .catch((error) => {
-          console.error("Error deleting news: ", error);
-          showToast('error', 'Lỗi', 'Xóa tin tức thất bại');
-        });
+    async function deleteNews() {
+      try {
+        await db.collection('news').doc(currentNewsId).delete();
+        showToast('success', 'Thành công', 'Xóa tin tức thành công');
+        closeConfirmationModal();
+        await loadNews();
+      } catch (error) {
+        console.error("❌ Error deleting news: ", error);
+        showToast('error', 'Lỗi', 'Xóa tin tức thất bại');
+      }
     }
     
     // Close news modal
@@ -1005,7 +1085,7 @@ const firebaseConfig = {
     confirmDeleteBtn.addEventListener('click', deleteNews);
     
     // Auth state observer
-    auth.onAuthStateChanged(user => {
+    auth.onAuthStateChanged(async (user) => {
       if (user) {
         // User is signed in
         authButtons.innerHTML = `
@@ -1022,12 +1102,30 @@ const firebaseConfig = {
         `;
         
         // Check if user is admin
-        if (user.email == 'hoangminhtuan09032000@gmail.com') {
+        if (user.email !== 'hoangminhtuan09032000@gmail.com') {
           showToast('error', 'Truy cập bị từ chối', 'Bạn không có quyền truy cập trang quản trị');
           setTimeout(() => {
             window.location.href = 'tintuc.html';
           }, 2000);
+          return;
         }
+        
+        // User is admin, initialize the app
+        console.log('👤 Admin user detected, initializing app...');
+        
+        // Kiểm tra kết nối Firebase
+        const connectionOk = await testFirebaseConnection();
+        if (!connectionOk) {
+          showToast('error', 'Lỗi kết nối', 'Không thể kết nối đến database');
+          return;
+        }
+        
+        // Khởi tạo collection news
+        await initializeNewsCollection();
+        
+        // Load news
+        await loadNews();
+        
       } else {
         // User is signed out
         showToast('error', 'Yêu cầu đăng nhập', 'Vui lòng đăng nhập để tiếp tục');
@@ -1042,14 +1140,9 @@ const firebaseConfig = {
       auth.signOut().then(() => {
         window.location.href = 'index.html';
       }).catch(error => {
-        console.error('Logout error:', error);
+        console.error('❌ Logout error:', error);
       });
     }
-    
-    // Load news on page load
-    document.addEventListener('DOMContentLoaded', () => {
-      loadNews();
-    });
   </script>
 </body>
 </html>
