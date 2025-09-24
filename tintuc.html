@@ -530,8 +530,8 @@
       <!-- News will be loaded here -->
       <div class="empty-state">
         <i class="fas fa-newspaper"></i>
-        <h3>Không có tin tức nào</h3>
-        <p>Hiện chưa có tin tức nào được đăng tải</p>
+        <h3>Đang tải tin tức...</h3>
+        <p>Vui lòng chờ trong giây lát</p>
       </div>
     </div>
   </div>
@@ -555,7 +555,7 @@
   
   <!-- Footer -->
   <div class="footer">
-    <a href="tel:1900545454" class="hotline">
+    <a href="tel:0393100508" class="hotline">
       <i class="fas fa-phone-alt"></i> Liên hệ: 0393100508
     </a>
   </div>
@@ -566,35 +566,21 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
   
   <script>
-    // Initialize Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyAkQmLs3LiuigjfPm-IfUBQHA9R_bs6Kbk",
-  authDomain: "scan-text-f0a13.firebaseapp.com",
-  projectId: "scan-text-f0a13",
-  storageBucket: "scan-text-f0a13.firebasestorage.app",
-  messagingSenderId: "698160614553",
-  appId: "1:698160614553:web:984e6e59bed8f93a74fc08",
-  measurementId: "G-C1EYX3NNLS"
-};
+    // Initialize Firebase với config GIỐNG code thứ 2
+    const firebaseConfig = {
+      apiKey: "AIzaSyAkQmLs3LiuigjfPm-IfUBQHA9R_bs6Kbk",
+      authDomain: "scan-text-f0a13.firebaseapp.com",
+      projectId: "scan-text-f0a13",
+      storageBucket: "scan-text-f0a13.firebasestorage.app",
+      messagingSenderId: "698160614553",
+      appId: "1:698160614553:web:984e6e59bed8f93a74fc08",
+      measurementId: "G-C1EYX3NNLS"
+    };
 
-    
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
     const auth = firebase.auth();
-    
-    // Initialize Firestore for news
-    const newsFirebaseConfig = {
-      apiKey: "AIzaSyBi-bivEL4ZRlXnJNdI2GTxZicbqpFTNfU",
-      authDomain: "pltt-39da9.firebaseapp.com",
-      projectId: "pltt-39da9",
-      storageBucket: "pltt-39da9.appspot.com",
-      messagingSenderId: "677834620418",
-      appId: "1:677834620418:web:9cd2eb66e8c09f3e08f11b",
-      measurementId: "G-KQ51HV803Z"
-    };
-    
-    const newsApp = firebase.initializeApp(newsFirebaseConfig, "news");
-    const db = firebase.firestore(newsApp);
     
     // DOM Elements
     const authButtons = document.getElementById('authButtons');
@@ -620,12 +606,14 @@ const firebaseConfig = {
     
     // Format date
     function formatDate(date) {
+      if (!date) return 'Chưa có ngày';
       const options = { year: 'numeric', month: 'long', day: 'numeric' };
       return new Date(date).toLocaleDateString('vi-VN', options);
     }
     
     // Extract excerpt from HTML content
     function extractExcerpt(html, length = 100) {
+      if (!html) return 'Không có nội dung';
       const div = document.createElement('div');
       div.innerHTML = html;
       const text = div.textContent || div.innerText || '';
@@ -634,19 +622,33 @@ const firebaseConfig = {
     
     // Extract first image from HTML content
     function extractFirstImage(html) {
+      if (!html) return null;
       const div = document.createElement('div');
       div.innerHTML = html;
       const img = div.querySelector('img');
       return img ? img.src : null;
     }
     
+    // Show error message
+    function showError(message) {
+      newsGrid.innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-exclamation-triangle"></i>
+          <h3>Đã xảy ra lỗi</h3>
+          <p>${message}</p>
+          <button onclick="loadNews()" class="btn" style="margin-top: 15px;">
+            <i class="fas fa-redo"></i> Thử lại
+          </button>
+        </div>
+      `;
+    }
+    
     // Load news from Firestore
     function loadNews(searchTerm = '') {
-      let query = db.collection('news').orderBy('createdAt', 'desc');
+      console.log('📰 Đang tải tin tức...');
       
-      if (searchTerm) {
-        query = query.where('keywords', 'array-contains', searchTerm.toLowerCase());
-      }
+      // Sử dụng collection 'news' trực tiếp (giống code thứ 2)
+      let query = db.collection('news').orderBy('createdAt', 'desc');
       
       query.get().then((querySnapshot) => {
         newsGrid.innerHTML = '';
@@ -655,59 +657,94 @@ const firebaseConfig = {
           newsGrid.innerHTML = `
             <div class="empty-state">
               <i class="fas fa-newspaper"></i>
-              <h3>Không tìm thấy tin tức</h3>
-              <p>Không có tin tức nào phù hợp với từ khóa tìm kiếm</p>
+              <h3>Không có tin tức nào</h3>
+              <p>Hiện chưa có tin tức nào được đăng tải</p>
             </div>
           `;
           return;
         }
         
+        // Lọc theo từ khóa nếu có
+        let newsItems = [];
         querySnapshot.forEach((doc) => {
           const data = doc.data();
-          const imageUrl = extractFirstImage(data.htmlContent) || '';
-          const excerpt = extractExcerpt(data.htmlContent, 150);
+          newsItems.push({
+            id: doc.id,
+            ...data
+          });
+        });
+        
+        if (searchTerm) {
+          const searchLower = searchTerm.toLowerCase();
+          newsItems = newsItems.filter(news => 
+            news.title.toLowerCase().includes(searchLower) ||
+            (news.keywords && news.keywords.some(keyword => 
+              keyword.toLowerCase().includes(searchLower)
+            ))
+          );
+        }
+        
+        if (newsItems.length === 0) {
+          newsGrid.innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-search"></i>
+              <h3>Không tìm thấy tin tức</h3>
+              <p>Không có tin tức nào phù hợp với từ khóa "${searchTerm}"</p>
+            </div>
+          `;
+          return;
+        }
+        
+        // Hiển thị tin tức
+        newsItems.forEach((news) => {
+          const imageUrl = extractFirstImage(news.htmlContent) || '';
+          const excerpt = extractExcerpt(news.htmlContent, 150);
           
           const newsElement = document.createElement('div');
           newsElement.className = 'news-card';
           newsElement.innerHTML = `
             <div class="news-image">
-              ${imageUrl ? `<img src="${imageUrl}" alt="${data.title}">` : ''}
-              <i class="fas fa-newspaper" style="${imageUrl ? 'display: none;' : ''}"></i>
+              ${imageUrl ? `<img src="${imageUrl}" alt="${news.title}" onerror="this.style.display='none'; this.parentNode.querySelector('i').style.display='flex';">` : ''}
+              <i class="fas fa-newspaper" style="${imageUrl ? 'display: none;' : 'display: flex;'}"></i>
             </div>
             <div class="news-content">
-              <h3 class="news-title">${data.title}</h3>
+              <h3 class="news-title">${news.title || 'Không có tiêu đề'}</h3>
               <p class="news-excerpt">${excerpt}</p>
               <div class="news-meta">
-                <span class="news-author"><i class="fas fa-user"></i> ${data.author}</span>
-                <span class="news-date"><i class="fas fa-calendar-alt"></i> ${formatDate(data.createdAt.toDate())}</span>
+                <span class="news-author"><i class="fas fa-user"></i> ${news.author || 'Không xác định'}</span>
+                <span class="news-date"><i class="fas fa-calendar-alt"></i> ${formatDate(news.createdAt?.toDate())}</span>
               </div>
             </div>
           `;
           
           newsElement.addEventListener('click', () => {
-            showNewsModal(data);
+            showNewsModal(news);
           });
           
           newsGrid.appendChild(newsElement);
         });
+        
+        console.log(`✅ Đã tải ${newsItems.length} tin tức`);
+        
       }).catch((error) => {
-        console.error("Error loading news: ", error);
-        newsGrid.innerHTML = `
-          <div class="empty-state">
-            <i class="fas fa-exclamation-triangle"></i>
-            <h3>Đã xảy ra lỗi</h3>
-            <p>Không thể tải danh sách tin tức. Vui lòng thử lại sau.</p>
-          </div>
-        `;
+        console.error("❌ Error loading news: ", error);
+        
+        if (error.code === 'permission-denied') {
+          showError('Không có quyền truy cập tin tức. Vui lòng kiểm tra Firebase Security Rules.');
+        } else if (error.code === 'not-found') {
+          showError('Không tìm thấy collection tin tức.');
+        } else {
+          showError('Không thể tải danh sách tin tức: ' + error.message);
+        }
       });
     }
     
     // Show news modal
     function showNewsModal(news) {
-      modalTitle.textContent = news.title;
-      modalAuthor.innerHTML = `<i class="fas fa-user"></i> ${news.author}`;
-      modalDate.innerHTML = `<i class="fas fa-calendar-alt"></i> ${formatDate(news.createdAt.toDate())}`;
-      modalContent.innerHTML = news.htmlContent;
+      modalTitle.textContent = news.title || 'Không có tiêu đề';
+      modalAuthor.innerHTML = `<i class="fas fa-user"></i> ${news.author || 'Không xác định'}`;
+      modalDate.innerHTML = `<i class="fas fa-calendar-alt"></i> ${formatDate(news.createdAt?.toDate())}`;
+      modalContent.innerHTML = news.htmlContent || '<p>Không có nội dung</p>';
       
       newsModal.style.display = 'block';
       document.body.style.overflow = 'hidden';
@@ -755,8 +792,8 @@ const firebaseConfig = {
             </span>`}
         `;
         
-        // Check if user is admin
-        if (user.email === 'admin@example.com') {
+        // Check if user is admin (thay email admin thực tế của bạn)
+        if (user.email === 'hoangminhtuan09032000@gmail.com') {
           const adminLink = document.createElement('a');
           adminLink.href = 'tintuc-ad.html';
           adminLink.className = 'auth-btn';
