@@ -378,7 +378,7 @@
       right: 20px;
       font-size: 24px;
       cursor: pointer;
-      color: 777;
+      color: #777;
     }
     
     .document-modal-body {
@@ -512,8 +512,8 @@
       <!-- Documents will be loaded here -->
       <div class="empty-state">
         <i class="fas fa-file-alt"></i>
-        <h3>Không có văn bản nào</h3>
-        <p>Hiện chưa có văn bản pháp lý nào được đăng tải</p>
+        <h3>Đang tải văn bản...</h3>
+        <p>Vui lòng chờ trong giây lát</p>
       </div>
     </div>
   </div>
@@ -537,7 +537,7 @@
   
   <!-- Footer -->
   <div class="footer">
-    <a href="tel:1900545454" class="hotline">
+    <a href="tel:0393100508" class="hotline">
       <i class="fas fa-phone-alt"></i> Liên hệ: 0393100508
     </a>
   </div>
@@ -548,35 +548,20 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
   
   <script>
-    // Initialize Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyAkQmLs3LiuigjfPm-IfUBQHA9R_bs6Kbk",
-  authDomain: "scan-text-f0a13.firebaseapp.com",
-  projectId: "scan-text-f0a13",
-  storageBucket: "scan-text-f0a13.firebasestorage.app",
-  messagingSenderId: "698160614553",
-  appId: "1:698160614553:web:984e6e59bed8f93a74fc08",
-  measurementId: "G-C1EYX3NNLS"
-};
+    // Initialize Firebase với config GIỐNG các code khác
+    const firebaseConfig = {
+      apiKey: "AIzaSyAkQmLs3LiuigjfPm-IfUBQHA9R_bs6Kbk",
+      authDomain: "scan-text-f0a13.firebaseapp.com",
+      projectId: "scan-text-f0a13",
+      storageBucket: "scan-text-f0a13.firebasestorage.app",
+      messagingSenderId: "698160614553",
+      appId: "1:698160614553:web:984e6e59bed8f93a74fc08",
+      measurementId: "G-C1EYX3NNLS"
+    };
 
-    
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    
-    // Initialize Firestore for documents
-    const documentsFirebaseConfig = {
-      apiKey: "AIzaSyBi-bivEL4ZRlXnJNdI2GTxZicbqpFTNfU",
-      authDomain: "pltt-39da9.firebaseapp.com",
-      projectId: "pltt-39da9",
-      storageBucket: "pltt-39da9.appspot.com",
-      messagingSenderId: "677834620418",
-      appId: "1:677834620418:web:9cd2eb66e8c09f3e08f11b",
-      measurementId: "G-KQ51HV803Z"
-    };
-    
-    const documentsApp = firebase.initializeApp(documentsFirebaseConfig, "documents");
-    const db = firebase.firestore(documentsApp);
+    const db = firebase.firestore();
     
     // DOM Elements
     const authButtons = document.getElementById('authButtons');
@@ -600,105 +585,96 @@ const firebaseConfig = {
       window.location.href = 'index.html';
     }
     
+    // Chuyển đến trang quản trị văn bản
+    function goToAdminPage() {
+      window.location.href = 'phaply-ad.html';
+    }
+    
     // Format date
     function formatDate(date) {
+      if (!date) return 'Chưa có ngày';
       const options = { year: 'numeric', month: 'long', day: 'numeric' };
       return new Date(date).toLocaleDateString('vi-VN', options);
     }
     
-    // Function to convert Quill Delta to HTML
-    function deltaToHtml(delta) {
-      if (!delta || !delta.ops) return '';
-      
-      let html = '';
-      let inList = false;
-      let listType = '';
-      
-      delta.ops.forEach(op => {
-        if (op.insert) {
-          let text = op.insert;
-          
-          // Apply formatting
-          if (op.attributes) {
-            if (op.attributes.bold) text = `<strong>${text}</strong>`;
-            if (op.attributes.italic) text = `<em>${text}</em>`;
-            if (op.attributes.underline) text = `<u>${text}</u>`;
-            if (op.attributes.strike) text = `<s>${text}</s>`;
-            
-            // Handle headers
-            if (op.attributes.header === 1) text = `<h1>${text}</h1>`;
-            else if (op.attributes.header === 2) text = `<h2>${text}</h2>`;
-            else if (op.attributes.header === 3) text = `<h3>${text}</h3>`;
-            
-            // Handle lists
-            if (op.attributes.list) {
-              const currentListType = op.attributes.list;
-              
-              if (!inList) {
-                // Start a new list
-                inList = true;
-                listType = currentListType;
-                text = currentListType === 'ordered' ? `<ol><li>${text}</li>` : `<ul><li>${text}</li>`;
-              } else if (listType !== currentListType) {
-                // List type changed, close previous and start new
-                text = currentListType === 'ordered' ? `</${listType === 'ordered' ? 'ol' : 'ul'}><ol><li>${text}</li>` : `</${listType === 'ordered' ? 'ol' : 'ul'}><ul><li>${text}</li>`;
-                listType = currentListType;
-              } else {
-                // Continue the same list
-                text = `<li>${text}</li>`;
-              }
-            } else if (inList) {
-              // End the list
-              text = `</${listType === 'ordered' ? 'ol' : 'ul'}>${text}`;
-              inList = false;
-              listType = '';
-            }
-          } else if (inList) {
-            // End the list if no attributes but we were in a list
-            text = `</${listType === 'ordered' ? 'ol' : 'ul'}>${text}`;
-            inList = false;
-            listType = '';
-          }
-          
-          html += text;
-        }
-      });
-      
-      // Close any open list tags
-      if (inList) {
-        html += `</${listType === 'ordered' ? 'ol' : 'ul'}>`;
-      }
-      
-      // Replace newlines with <br> tags
-      html = html.replace(/\n/g, '<br>');
-      
-      return html;
+    // Extract excerpt from HTML content
+    function extractExcerpt(html, length = 100) {
+      if (!html) return 'Không có nội dung';
+      const div = document.createElement('div');
+      div.innerHTML = html;
+      const text = div.textContent || div.innerText || '';
+      return text.substring(0, length) + (text.length > length ? '...' : '');
+    }
+    
+    // Show error message
+    function showError(message) {
+      documentsGrid.innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-exclamation-triangle"></i>
+          <h3>Đã xảy ra lỗi</h3>
+          <p>${message}</p>
+          <button onclick="loadDocuments()" class="btn" style="margin-top: 15px;">
+            <i class="fas fa-redo"></i> Thử lại
+          </button>
+        </div>
+      `;
     }
     
     // Load documents from Firestore
-    function loadDocuments(searchTerm = '') {
-      let query = db.collection('legal-documents').orderBy('createdAt', 'desc');
-      
-      if (searchTerm) {
-        query = query.where('keywords', 'array-contains', searchTerm.toLowerCase());
-      }
-      
-      query.get().then((querySnapshot) => {
+    async function loadDocuments(searchTerm = '') {
+      try {
+        console.log('📄 Đang tải văn bản...');
+        
+        // Sử dụng collection 'legal-documents' trực tiếp
+        const querySnapshot = await db.collection('legal-documents').orderBy('createdAt', 'desc').get();
         documentsGrid.innerHTML = '';
         
         if (querySnapshot.empty) {
           documentsGrid.innerHTML = `
             <div class="empty-state">
               <i class="fas fa-file-alt"></i>
-              <h3>Không tìm thấy văn bản</h3>
-              <p>Không có văn bản nào phù hợp với từ khóa tìm kiếm</p>
+              <h3>Không có văn bản nào</h3>
+              <p>Hiện chưa có văn bản pháp lý nào được đăng tải</p>
             </div>
           `;
           return;
         }
         
+        // Lọc theo từ khóa nếu có
+        let documents = [];
         querySnapshot.forEach((doc) => {
           const data = doc.data();
+          documents.push({
+            id: doc.id,
+            ...data
+          });
+        });
+        
+        if (searchTerm) {
+          const searchLower = searchTerm.toLowerCase();
+          documents = documents.filter(doc => 
+            doc.title.toLowerCase().includes(searchLower) ||
+            (doc.keywords && doc.keywords.some(keyword => 
+              keyword.toLowerCase().includes(searchLower)
+            ))
+          );
+        }
+        
+        if (documents.length === 0) {
+          documentsGrid.innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-search"></i>
+              <h3>Không tìm thấy văn bản</h3>
+              <p>Không có văn bản nào phù hợp với từ khóa "${searchTerm}"</p>
+            </div>
+          `;
+          return;
+        }
+        
+        // Hiển thị văn bản
+        documents.forEach((doc) => {
+          const excerpt = extractExcerpt(doc.htmlContent, 150);
+          
           const docElement = document.createElement('div');
           docElement.className = 'document-card';
           docElement.innerHTML = `
@@ -706,52 +682,43 @@ const firebaseConfig = {
               <i class="fas fa-file-contract"></i>
             </div>
             <div class="document-content">
-              <h3 class="document-title">${data.title}</h3>
+              <h3 class="document-title">${doc.title || 'Không có tiêu đề'}</h3>
+              <p style="color: #666; margin-bottom: 15px;">${excerpt}</p>
               <div class="document-meta">
-                <span class="document-author"><i class="fas fa-user"></i> ${data.author}</span>
-                <span class="document-date"><i class="fas fa-calendar-alt"></i> ${formatDate(data.createdAt.toDate())}</span>
+                <span class="document-author"><i class="fas fa-user"></i> ${doc.author || 'Không xác định'}</span>
+                <span class="document-date"><i class="fas fa-calendar-alt"></i> ${formatDate(doc.createdAt?.toDate())}</span>
               </div>
             </div>
           `;
           
           docElement.addEventListener('click', () => {
-            showDocumentModal(data);
+            showDocumentModal(doc);
           });
           
           documentsGrid.appendChild(docElement);
         });
-      }).catch((error) => {
-        console.error("Error loading documents: ", error);
-        documentsGrid.innerHTML = `
-          <div class="empty-state">
-            <i class="fas fa-exclamation-triangle"></i>
-            <h3>Đã xảy ra lỗi</h3>
-            <p>Không thể tải danh sách văn bản. Vui lòng thử lại sau.</p>
-          </div>
-        `;
-      });
+        
+        console.log(`✅ Đã tải ${documents.length} văn bản`);
+        
+      } catch (error) {
+        console.error("❌ Error loading documents: ", error);
+        
+        if (error.code === 'permission-denied') {
+          showError('Không có quyền truy cập văn bản. Vui lòng kiểm tra Firebase Security Rules.');
+        } else if (error.code === 'not-found') {
+          showError('Không tìm thấy collection văn bản.');
+        } else {
+          showError('Không thể tải danh sách văn bản: ' + error.message);
+        }
+      }
     }
     
     // Show document modal
     function showDocumentModal(doc) {
-      modalTitle.textContent = doc.title;
-      modalAuthor.innerHTML = `<i class="fas fa-user"></i> ${doc.author}`;
-      modalDate.innerHTML = `<i class="fas fa-calendar-alt"></i> ${formatDate(doc.createdAt.toDate())}`;
-      
-      // Convert Delta content to HTML if needed
-      let contentHtml = '';
-      if (doc.htmlContent) {
-        contentHtml = doc.htmlContent;
-      } else if (doc.content) {
-        try {
-          const delta = typeof doc.content === 'string' ? JSON.parse(doc.content) : doc.content;
-          contentHtml = deltaToHtml(delta);
-        } catch (e) {
-          contentHtml = doc.content; // Fallback to plain text
-        }
-      }
-      
-      modalContent.innerHTML = contentHtml;
+      modalTitle.textContent = doc.title || 'Không có tiêu đề';
+      modalAuthor.innerHTML = `<i class="fas fa-user"></i> ${doc.author || 'Không xác định'}`;
+      modalDate.innerHTML = `<i class="fas fa-calendar-alt"></i> ${formatDate(doc.createdAt?.toDate())}`;
+      modalContent.innerHTML = doc.htmlContent || '<p>Không có nội dung</p>';
       
       documentModal.style.display = 'block';
       document.body.style.overflow = 'hidden';
@@ -782,57 +749,41 @@ const firebaseConfig = {
       }
     });
     
-    // Auth state observer
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        // User is signed in
-        authButtons.innerHTML = `
-          <button class="auth-btn" onclick="logout()" title="Đăng xuất">
-            <i class="fas fa-sign-out-alt"></i>
-            ${isMobile() ? '' : '<span>Đăng xuất</span>'}
-          </button>
-          ${user.photoURL ? 
-            `<img src="${user.photoURL}" class="user-avatar" title="${user.displayName || user.email}">` : 
-            `<span class="auth-btn" title="${user.displayName || user.email}">
-              <i class="fas fa-user"></i>
-              ${isMobile() ? '' : `<span>${user.displayName || user.email.split('@')[0]}</span>`}
-            </span>`}
-        `;
+    // ==================== KHỞI TẠO ỨNG DỤNG CÔNG KHAI ====================
+    async function initializeApp() {
+      console.log('🚀 Khởi tạo ứng dụng công khai...');
+      
+      try {
+        // Kiểm tra kết nối Firebase
+        const testRead = await db.collection('legal-documents').limit(1).get();
+        console.log('✅ Firebase connection successful');
         
-        // Check if user is admin
-        if (user.email === 'admin@example.com') {
-          const adminLink = document.createElement('a');
-          adminLink.href = 'phaply-ad.html';
-          adminLink.className = 'auth-btn';
-          adminLink.innerHTML = `
+        // Load documents
+        await loadDocuments();
+        
+        // Hiển thị nút chuyển đến trang quản trị
+        authButtons.innerHTML = `
+          <button class="auth-btn" onclick="goToAdminPage()">
             <i class="fas fa-cog"></i>
             ${isMobile() ? '' : '<span>Quản trị</span>'}
-          `;
-          authButtons.insertBefore(adminLink, authButtons.firstChild);
-        }
-      } else {
-        // User is signed out
-        authButtons.innerHTML = `
-          <button class="auth-btn" onclick="window.location.href='index.html'" title="Đăng nhập">
-            <i class="fas fa-sign-in-alt"></i>
-            ${isMobile() ? '' : '<span>Đăng nhập</span>'}
           </button>
         `;
+        
+        console.log('✅ Ứng dụng đã khởi tạo thành công');
+      } catch (error) {
+        console.error('❌ Lỗi khởi tạo ứng dụng:', error);
+        
+        if (error.code === 'permission-denied') {
+          showError('Không có quyền truy cập văn bản. Vui lòng kiểm tra Firebase Security Rules.');
+        } else {
+          showError('Không thể kết nối đến database: ' + error.message);
+        }
       }
-    });
-    
-    // Logout function
-    function logout() {
-      auth.signOut().then(() => {
-        window.location.href = 'index.html';
-      }).catch(error => {
-        console.error('Logout error:', error);
-      });
     }
     
-    // Load documents on page load
-    document.addEventListener('DOMContentLoaded', () => {
-      loadDocuments();
+    // Khởi tạo app ngay khi trang load
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeApp();
     });
   </script>
 </body>
