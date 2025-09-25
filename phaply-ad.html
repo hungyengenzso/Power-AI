@@ -656,9 +656,6 @@
       <i class="fas fa-times"></i>
     </div>
   </div>
-  
-  <!-- Footer -->
-
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
@@ -668,35 +665,20 @@
   <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
   
   <script>
-    // Initialize Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyAkQmLs3LiuigjfPm-IfUBQHA9R_bs6Kbk",
-  authDomain: "scan-text-f0a13.firebaseapp.com",
-  projectId: "scan-text-f0a13",
-  storageBucket: "scan-text-f0a13.firebasestorage.app",
-  messagingSenderId: "698160614553",
-  appId: "1:698160614553:web:984e6e59bed8f93a74fc08",
-  measurementId: "G-C1EYX3NNLS"
-};
+    // Initialize Firebase với config GIỐNG các code khác
+    const firebaseConfig = {
+      apiKey: "AIzaSyAkQmLs3LiuigjfPm-IfUBQHA9R_bs6Kbk",
+      authDomain: "scan-text-f0a13.firebaseapp.com",
+      projectId: "scan-text-f0a13",
+      storageBucket: "scan-text-f0a13.firebasestorage.app",
+      messagingSenderId: "698160614553",
+      appId: "1:698160614553:web:984e6e59bed8f93a74fc08",
+      measurementId: "G-C1EYX3NNLS"
+    };
 
-    
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    
-    // Initialize Firestore for documents
-    const documentsFirebaseConfig = {
-      apiKey: "AIzaSyBi-bivEL4ZRlXnJNdI2GTxZicbqpFTNfU",
-      authDomain: "pltt-39da9.firebaseapp.com",
-      projectId: "pltt-39da9",
-      storageBucket: "pltt-39da9.appspot.com",
-      messagingSenderId: "677834620418",
-      appId: "1:677834620418:web:9cd2eb66e8c09f3e08f11b",
-      measurementId: "G-KQ51HV803Z"
-    };
-    
-    const documentsApp = firebase.initializeApp(documentsFirebaseConfig, "documents");
-    const db = firebase.firestore(documentsApp);
+    const db = firebase.firestore();
     
     // Initialize Quill editor
     const quill = new Quill('#editor', {
@@ -750,8 +732,14 @@ const firebaseConfig = {
       window.location.href = 'index.html';
     }
     
+    // Chuyển đến trang xem văn bản public
+    function goToDocumentsPage() {
+      window.location.href = 'vanban.html';
+    }
+    
     // Format date
     function formatDate(date) {
+      if (!date) return 'Chưa có ngày';
       const options = { year: 'numeric', month: 'long', day: 'numeric' };
       return new Date(date).toLocaleDateString('vi-VN', options);
     }
@@ -786,67 +774,82 @@ const firebaseConfig = {
     });
     
     // Load documents from Firestore
-    function loadDocuments() {
-      db.collection('legal-documents').orderBy('createdAt', 'desc').get()
-        .then((querySnapshot) => {
-          documentsTableBody.innerHTML = '';
-          documents = [];
+    async function loadDocuments() {
+      try {
+        console.log('📄 Đang tải văn bản...');
+        
+        const querySnapshot = await db.collection('legal-documents').orderBy('createdAt', 'desc').get();
+        documentsTableBody.innerHTML = '';
+        documents = [];
+        
+        if (querySnapshot.empty) {
+          emptyState.style.display = 'block';
+          console.log('ℹ️ Không có văn bản nào');
+          return;
+        }
+        
+        emptyState.style.display = 'none';
+        console.log(`✅ Đã tải ${querySnapshot.size} văn bản`);
+        
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          documents.push({
+            id: doc.id,
+            ...data
+          });
           
-          if (querySnapshot.empty) {
-            emptyState.style.display = 'block';
-            return;
-          }
-          
-          emptyState.style.display = 'none';
-          
-          querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            documents.push({
-              id: doc.id,
-              ...data
-            });
-            
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td>${data.title}</td>
-              <td>${data.author}</td>
-              <td>${formatDate(data.createdAt.toDate())}</td>
-              <td>
-                <div class="actions">
-                  <div class="action-btn edit-btn" data-id="${doc.id}">
-                    <i class="fas fa-edit"></i>
-                  </div>
-                  <div class="action-btn delete-btn" data-id="${doc.id}">
-                    <i class="fas fa-trash"></i>
-                  </div>
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${data.title || 'Không có tiêu đề'}</td>
+            <td>${data.author || 'Không xác định'}</td>
+            <td>${formatDate(data.createdAt?.toDate())}</td>
+            <td>
+              <div class="actions">
+                <div class="action-btn edit-btn" data-id="${doc.id}">
+                  <i class="fas fa-edit"></i>
                 </div>
-              </td>
-            `;
-            
-            documentsTableBody.appendChild(row);
-          });
+                <div class="action-btn delete-btn" data-id="${doc.id}">
+                  <i class="fas fa-trash"></i>
+                </div>
+              </div>
+            </td>
+          `;
           
-          // Add event listeners to edit and delete buttons
-          document.querySelectorAll('.edit-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-              e.stopPropagation();
-              const id = btn.getAttribute('data-id');
-              editDocument(id);
-            });
-          });
-          
-          document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-              e.stopPropagation();
-              const id = btn.getAttribute('data-id');
-              confirmDeleteDocument(id);
-            });
-          });
-        })
-        .catch((error) => {
-          console.error("Error loading documents: ", error);
-          showToast('error', 'Lỗi', 'Không thể tải danh sách văn bản');
+          documentsTableBody.appendChild(row);
         });
+        
+        // Add event listeners to edit and delete buttons
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = btn.getAttribute('data-id');
+            editDocument(id);
+          });
+        });
+        
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = btn.getAttribute('data-id');
+            confirmDeleteDocument(id);
+          });
+        });
+        
+      } catch (error) {
+        console.error("❌ Error loading documents: ", error);
+        showToast('error', 'Lỗi tải văn bản', 'Không thể tải danh sách văn bản: ' + error.message);
+        
+        // Hiển thị empty state với nút thử lại
+        emptyState.style.display = 'block';
+        emptyState.innerHTML = `
+          <i class="fas fa-exclamation-triangle"></i>
+          <h3>Lỗi tải dữ liệu</h3>
+          <p>${error.message}</p>
+          <button onclick="loadDocuments()" class="btn" style="margin-top: 15px;">
+            <i class="fas fa-redo"></i> Thử lại
+          </button>
+        `;
+      }
     }
     
     // Add new document
@@ -854,6 +857,7 @@ const firebaseConfig = {
       currentDocumentId = null;
       documentForm.reset();
       quill.setContents([]);
+      document.getElementById('modalTitle').textContent = 'Thêm văn bản mới';
       documentTitle.focus();
       documentModal.style.display = 'block';
       document.body.style.overflow = 'hidden';
@@ -866,14 +870,19 @@ const firebaseConfig = {
       
       currentDocumentId = id;
       documentId.value = id;
-      documentTitle.value = doc.title;
-      documentAuthor.value = doc.author;
+      documentTitle.value = doc.title || '';
+      documentAuthor.value = doc.author || '';
+      document.getElementById('modalTitle').textContent = 'Chỉnh sửa văn bản';
       
       try {
-        const content = JSON.parse(doc.content);
-        quill.setContents(content);
+        if (doc.content) {
+          const content = JSON.parse(doc.content);
+          quill.setContents(content);
+        } else {
+          quill.setText(doc.htmlContent || '');
+        }
       } catch (e) {
-        quill.setText(doc.content);
+        quill.setText(doc.htmlContent || doc.content || '');
       }
       
       documentModal.style.display = 'block';
@@ -881,14 +890,14 @@ const firebaseConfig = {
     }
     
     // Save document
-    function saveDocument() {
+    async function saveDocument() {
       const title = documentTitle.value.trim();
       const author = documentAuthor.value.trim();
       const content = JSON.stringify(quill.getContents());
       const htmlContent = quill.root.innerHTML;
       
       if (!title || !author || quill.getText().trim().length < 10) {
-        showToast('error', 'Lỗi', 'Vui lòng điền đầy đủ thông tin và nội dung');
+        showToast('error', 'Lỗi', 'Vui lòng điền đầy đủ thông tin và nội dung (ít nhất 10 ký tự)');
         return;
       }
       
@@ -901,34 +910,53 @@ const firebaseConfig = {
         content,
         htmlContent,
         keywords,
-        createdAt: currentDocumentId ? firebase.firestore.FieldValue.serverTimestamp() : firebase.firestore.FieldValue.serverTimestamp(),
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       };
       
-      if (currentDocumentId) {
-        // Update existing document
-        db.collection('legal-documents').doc(currentDocumentId).update(documentData)
-          .then(() => {
-            showToast('success', 'Thành công', 'Cập nhật văn bản thành công');
-            closeDocumentModal();
-            loadDocuments();
-          })
-          .catch((error) => {
-            console.error("Error updating document: ", error);
-            showToast('error', 'Lỗi', 'Cập nhật văn bản thất bại');
-          });
-      } else {
-        // Add new document
-        db.collection('legal-documents').add(documentData)
-          .then(() => {
-            showToast('success', 'Thành công', 'Thêm văn bản thành công');
-            closeDocumentModal();
-            loadDocuments();
-          })
-          .catch((error) => {
-            console.error("Error adding document: ", error);
-            showToast('error', 'Lỗi', 'Thêm văn bản thất bại');
-          });
+      // Thêm createdAt cho văn bản mới
+      if (!currentDocumentId) {
+        documentData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      }
+      
+      try {
+        // Hiển thị loading
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
+        saveBtn.disabled = true;
+        
+        if (currentDocumentId) {
+          // Update existing document
+          await db.collection('legal-documents').doc(currentDocumentId).update(documentData);
+          showToast('success', 'Thành công', 'Cập nhật văn bản thành công');
+        } else {
+          // Add new document
+          await db.collection('legal-documents').add(documentData);
+          showToast('success', 'Thành công', 'Thêm văn bản thành công');
+        }
+        
+        closeDocumentModal();
+        await loadDocuments();
+        
+      } catch (error) {
+        console.error("❌ Error saving document: ", error);
+        
+        // Xử lý lỗi chi tiết
+        let errorMessage = 'Lỗi không xác định';
+        
+        if (error.code === 'permission-denied') {
+          errorMessage = 'Bạn không có quyền thực hiện thao tác này. Vui lòng kiểm tra Firebase Rules.';
+        } else if (error.code === 'not-found') {
+          errorMessage = 'Không tìm thấy collection. Vui lòng kiểm tra kết nối database.';
+        } else if (error.code === 'unavailable') {
+          errorMessage = 'Mất kết nối mạng. Vui lòng kiểm tra kết nối internet.';
+        } else {
+          errorMessage = error.message;
+        }
+        
+        showToast('error', 'Lỗi lưu văn bản', errorMessage);
+      } finally {
+        // Khôi phục trạng thái nút
+        saveBtn.innerHTML = '<i class="fas fa-save"></i> Lưu lại';
+        saveBtn.disabled = false;
       }
     }
     
@@ -962,17 +990,16 @@ const firebaseConfig = {
     }
     
     // Delete document
-    function deleteDocument() {
-      db.collection('legal-documents').doc(currentDocumentId).delete()
-        .then(() => {
-          showToast('success', 'Thành công', 'Xóa văn bản thành công');
-          closeConfirmationModal();
-          loadDocuments();
-        })
-        .catch((error) => {
-          console.error("Error deleting document: ", error);
-          showToast('error', 'Lỗi', 'Xóa văn bản thất bại');
-        });
+    async function deleteDocument() {
+      try {
+        await db.collection('legal-documents').doc(currentDocumentId).delete();
+        showToast('success', 'Thành công', 'Xóa văn bản thành công');
+        closeConfirmationModal();
+        await loadDocuments();
+      } catch (error) {
+        console.error("❌ Error deleting document: ", error);
+        showToast('error', 'Lỗi', 'Xóa văn bản thất bại: ' + error.message);
+      }
     }
     
     // Close document modal
@@ -1005,51 +1032,53 @@ const firebaseConfig = {
     confirmCancelBtn.addEventListener('click', closeConfirmationModal);
     confirmDeleteBtn.addEventListener('click', deleteDocument);
     
-    // Auth state observer
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        // User is signed in
+    // ==================== KHỞI TẠO ỨNG DỤNG CÔNG KHAI ====================
+    async function initializeApp() {
+      console.log('🚀 Khởi tạo ứng dụng công khai...');
+      
+      try {
+        // Kiểm tra kết nối Firebase
+        const testRead = await db.collection('legal-documents').limit(1).get();
+        console.log('✅ Firebase connection successful');
+        
+        // Load documents
+        await loadDocuments();
+        
+        // Hiển thị nút chuyển đến trang xem văn bản public
         authButtons.innerHTML = `
-          <button class="auth-btn" onclick="logout()" title="Đăng xuất">
-            <i class="fas fa-sign-out-alt"></i>
-            ${isMobile() ? '' : '<span>Đăng xuất</span>'}
+          <button class="auth-btn" onclick="goToDocumentsPage()">
+            <i class="fas fa-file-alt"></i>
+            ${isMobile() ? '' : '<span>Xem văn bản</span>'}
           </button>
-          ${user.photoURL ? 
-            `<img src="${user.photoURL}" class="user-avatar" title="${user.displayName || user.email}">` : 
-            `<span class="auth-btn" title="${user.displayName || user.email}">
-              <i class="fas fa-user"></i>
-              ${isMobile() ? '' : `<span>${user.displayName || user.email.split('@')[0]}</span>`}
-            </span>`}
         `;
         
-        // Check if user is admin
-        if (user.email == 'hoangminhtuan09032000@gmail.com') {
-          showToast('error', 'Truy cập bị từ chối', 'Bạn không có quyền truy cập trang quản trị');
-          setTimeout(() => {
-            window.location.href = 'tintuc.html';
-          }, 2000);
+        console.log('✅ Ứng dụng đã khởi tạo thành công');
+      } catch (error) {
+        console.error('❌ Lỗi khởi tạo ứng dụng:', error);
+        
+        if (error.code === 'permission-denied') {
+          showToast('error', 'Lỗi quyền truy cập', 
+            'Không có quyền truy cập văn bản. Vui lòng kiểm tra Firebase Security Rules.');
+        } else {
+          showToast('error', 'Lỗi kết nối', 'Không thể kết nối đến database: ' + error.message);
         }
-      } else {
-        // User is signed out
-        showToast('error', 'Yêu cầu đăng nhập', 'Vui lòng đăng nhập để tiếp tục');
-        setTimeout(() => {
-          window.location.href = 'index.html';
-        }, 2000);
+        
+        // Hiển thị empty state với thông báo lỗi
+        emptyState.style.display = 'block';
+        emptyState.innerHTML = `
+          <i class="fas fa-exclamation-triangle"></i>
+          <h3>Lỗi kết nối database</h3>
+          <p>${error.message}</p>
+          <button onclick="initializeApp()" class="btn" style="margin-top: 15px;">
+            <i class="fas fa-redo"></i> Thử lại kết nối
+          </button>
+        `;
       }
-    });
-    
-    // Logout function
-    function logout() {
-      auth.signOut().then(() => {
-        window.location.href = 'index.html';
-      }).catch(error => {
-        console.error('Logout error:', error);
-      });
     }
     
-    // Load documents on page load
-    document.addEventListener('DOMContentLoaded', () => {
-      loadDocuments();
+    // Khởi tạo app ngay khi trang load
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeApp();
     });
   </script>
 </body>
