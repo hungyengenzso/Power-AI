@@ -8,6 +8,7 @@
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
   <style>
     * { 
       box-sizing: border-box; 
@@ -311,38 +312,35 @@
       font-size: 14px;
       border-top: 1px solid #eee;
     }
-    
-    /* Responsive */
-    @media (max-width: 768px) {
-      .contact-header h1 {
-        font-size: 28px;
-      }
-      
-      .contact-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .map-container iframe {
-        height: 300px;
-      }
-    }
-    
-    @media (max-width: 480px) {
-      .contact-card {
-        padding: 20px;
-      }
-      
-      .contact-icon {
-        width: 60px;
-        height: 60px;
-        font-size: 25px;
-      }
-      
-      .contact-header h1 {
-        font-size: 24px;
-      }
-    }
 
+    /* Key info section */
+    .key-info-section {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border: 1px solid #fbbf24;
+      border-radius: 12px;
+      padding: 25px;
+      margin: 30px 0;
+      text-align: center;
+    }
+    
+    .key-info-section h3 {
+      color: #b45309;
+      margin-bottom: 15px;
+      font-size: 20px;
+    }
+    
+    .key-info-section p {
+      color: #92400e;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+    
+    .key-highlight {
+      font-weight: bold;
+      font-size: 18px;
+      color: #d97706;
+    }
+    
     /* Các style khác từ file gốc (auth modal, toast, ...) */
     /* Auth modal */
     .auth-modal {
@@ -465,6 +463,70 @@
       color: #777;
     }
 
+    /* Key input styling */
+    .key-input {
+      border: 2px solid #fbbf24;
+      box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+      animation: glow 2s infinite alternate;
+      background-color: #fffbeb;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+    
+    @keyframes glow {
+      from {
+        box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+      }
+      to {
+        box-shadow: 0 0 20px rgba(251, 191, 36, 0.8), 0 0 30px rgba(251, 191, 36, 0.6);
+      }
+    }
+    
+    .key-info {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border: 1px solid #fbbf24;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 16px;
+      font-size: 0.875rem;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .key-info::before {
+      content: '';
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      width: 30px;
+      height: 30px;
+      background: #f59e0b;
+      border-radius: 50%;
+      opacity: 0.2;
+    }
+    
+    .key-info::after {
+      content: '';
+      position: absolute;
+      bottom: -15px;
+      left: -15px;
+      width: 40px;
+      height: 40px;
+      background: #f59e0b;
+      border-radius: 50%;
+      opacity: 0.2;
+    }
+    
+    .key-label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .key-label i {
+      color: #f59e0b;
+    }
+
     /* Notification toast */
     .toast {
       position: fixed;
@@ -576,6 +638,16 @@
     </div>
   </div>
 
+  <!-- Key info section -->
+  <div class="contact-container">
+    <div class="key-info-section">
+      <h3><i class="fas fa-key"></i> THÔNG TIN KEY ACCOUNT</h3>
+      <p>Để sử dụng đầy đủ tính năng của hệ thống, bạn cần có KEY ACCOUNT hợp lệ.</p>
+      <p>Mỗi KEY có thể sử dụng tối đa <span class="key-highlight">5 tài khoản</span> và có thời hạn 6 tháng.</p>
+      <p>Liên hệ ngay: <span class="key-highlight">0977893086</span> để được hỗ trợ mua KEY!</p>
+    </div>
+  </div>
+
   <!-- Contact section -->
   <div class="contact-container">
     <div class="contact-header">
@@ -591,7 +663,7 @@
         <h3>Điện thoại</h3>
         <div class="contact-info">
           <p>Hotline hỗ trợ 24/7</p>
-          <p><strong>0393 100 508</strong></p>
+          <p><strong>0977893086</strong></p>
         </div>
         <a href="tel:0977893086" class="contact-link">
           <i class="fas fa-phone-alt"></i> Gọi ngay
@@ -619,7 +691,7 @@
         <h3>Zalo</h3>
         <div class="contact-info">
           <p>Hỗ trợ qua Zalo</p>
-          <p><strong>0393 100 508</strong></p>
+          <p><strong>0977893086</strong></p>
         </div>
         <a href="https://zalo.me/0977893086" class="contact-link" target="_blank">
           <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Icon_of_Zalo.svg/2048px-Icon_of_Zalo.svg.png" class="zalo-icon" alt="Zalo">
@@ -677,8 +749,15 @@
       </form>
       
       <form id="registerForm" class="auth-form">
+        <div class="key-info">
+          <p class="font-medium text-amber-800"><i class="fas fa-exclamation-circle"></i> Để đăng ký tài khoản, bạn cần có KEY ACCOUNT hợp lệ.</p>
+          <p class="mt-1 text-amber-700"><i class="fas fa-phone"></i> Liên hệ: <span class="font-bold">0977893086</span> để mua KEY.</p>
+        </div>
+        
         <div class="form-group">
-          <label for="registerName">Họ tên</label>
+          <label for="registerName" class="key-label">
+            <i class="fas fa-user"></i> Họ tên
+          </label>
           <input type="text" id="registerName" required>
         </div>
         <div class="form-group">
@@ -692,6 +771,12 @@
         <div class="form-group">
           <label for="registerConfirm">Nhập lại mật khẩu</label>
           <input type="password" id="registerConfirm" required>
+        </div>
+        <div class="form-group">
+          <label for="accountKey" class="key-label">
+            <i class="fas fa-key"></i> KEY ACCOUNT <span class="text-red-500">*</span>
+          </label>
+          <input type="text" id="accountKey" required class="key-input" placeholder="Nhập KEY ACCOUNT của bạn">
         </div>
         <button type="submit" class="auth-submit">Đăng ký</button>
       </form>
@@ -714,6 +799,7 @@ const firebaseConfig = {
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
+    const db = firebase.firestore();
     
     // DOM Elements
     const authButtons = document.getElementById('authButtons');
@@ -878,35 +964,80 @@ const firebaseConfig = {
     });
     
     // Register form submission
-    registerForm.addEventListener('submit', (e) => {
+    registerForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = document.getElementById('registerName').value;
       const email = document.getElementById('registerEmail').value;
       const password = document.getElementById('registerPassword').value;
       const confirmPassword = document.getElementById('registerConfirm').value;
+      const accountKey = document.getElementById('accountKey').value.trim().toUpperCase();
       
       if (password !== confirmPassword) {
         authError.textContent = 'Mật khẩu không khớp!';
         return;
       }
       
-      auth.createUserWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-          // Update user profile with name
-          return userCredential.user.updateProfile({
-            displayName: name
-          });
-        })
-        .then(() => {
-          // Set flag to show login success toast
-          sessionStorage.setItem('justLoggedIn', 'true');
-          authModal.style.display = 'none';
-          authError.textContent = '';
-          location.reload();
-        })
-        .catch(error => {
-          authError.textContent = getErrorMessage(error.code);
+      if (!accountKey) {
+        authError.textContent = 'Vui lòng nhập KEY ACCOUNT!';
+        return;
+      }
+      
+      try {
+        // Kiểm tra key hợp lệ trong Firestore
+        const keyDoc = await db.collection('accountKeys').doc(accountKey).get();
+        
+        if (!keyDoc.exists) {
+          authError.textContent = 'KEY ACCOUNT không hợp lệ! Vui lòng kiểm tra lại hoặc liên hệ 0977893086 để mua KEY.';
+          return;
+        }
+        
+        const keyData = keyDoc.data();
+        
+        // Kiểm tra key còn sử dụng được không
+        if (keyData.usedCount >= keyData.maxUses) {
+          authError.textContent = 'KEY ACCOUNT đã hết số lần sử dụng! Vui lòng liên hệ 0977893086 để mua KEY mới.';
+          return;
+        }
+        
+        // Kiểm tra key còn hạn sử dụng không
+        if (keyData.expiryDate && keyData.expiryDate.toDate() < new Date()) {
+          authError.textContent = 'KEY ACCOUNT đã hết hạn! Vui lòng liên hệ 0977893086 để mua KEY mới.';
+          return;
+        }
+        
+        // Tạo tài khoản người dùng
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        
+        // Cập nhật số lần sử dụng của key
+        await db.collection('accountKeys').doc(accountKey).update({
+          usedCount: firebase.firestore.FieldValue.increment(1),
+          lastUsed: firebase.firestore.FieldValue.serverTimestamp(),
+          usedBy: firebase.firestore.FieldValue.arrayUnion(userCredential.user.uid)
         });
+        
+        // Cập nhật thông tin người dùng
+        await userCredential.user.updateProfile({
+          displayName: name
+        });
+        
+        // Lưu thông tin bổ sung vào Firestore
+        await db.collection('users').doc(userCredential.user.uid).set({
+          name: name,
+          email: email,
+          accountKey: accountKey,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        // Set flag to show login success toast
+        sessionStorage.setItem('justLoggedIn', 'true');
+        authModal.style.display = 'none';
+        authError.textContent = '';
+        location.reload();
+        
+      } catch (error) {
+        authError.textContent = getErrorMessage(error.code);
+      }
     });
     
     // Forgot password
