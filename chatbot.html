@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POWER AI | Chatbot Tiết kiệm Điện</title>
+    <title>TVPower Check | Chatbot Tiết kiệm Điện</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script type="text/javascript" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -677,7 +677,7 @@ const firebaseConfig = {
     <div class="header">
         <div class="logo" onclick="window.location.href='index.html'">
             <i class="fa-solid fa-bolt"></i>
-            <span class="logo-text">Power AI</span>
+            <span class="logo-text">TVPower Check</span>
         </div>
         
         <div class="header-right">
@@ -758,7 +758,7 @@ const firebaseConfig = {
             <div class="p-3 border-t border-gray-200">
                 <div class="text-center text-sm text-gray-500">
                     <p>©2025 THPT Trưng Vương</p>
-                    <p>Dự án POWER AI</p>
+                    <p>Dự án TVPower Check</p>
                 </div>
             </div>
         </div>
@@ -926,7 +926,7 @@ class EnergyAI {
         ];
         
         const randomResponse = energyResponses[Math.floor(Math.random() * energyResponses.length)];
-        const enhancedResponse = `${randomResponse}\n\nĐây là thông tin từ hệ thống POWER AI của THPT Trưng Vương, chuyên về tiết kiệm điện và năng lượng.`;
+        const enhancedResponse = `${randomResponse}\n\nĐây là thông tin từ hệ thống TVPower Check của THPT Trưng Vương, chuyên về tiết kiệm điện và năng lượng.`;
         
         return {
             success: true,
@@ -1128,7 +1128,7 @@ class EnergyAI {
 
             const greetings = ["chào", "hello"];
             if (greetings.some(greet => userMessage.toLowerCase().includes(greet))) {
-                const greetingResponse = "Xin chào, tôi là POWER AI - trợ lý ảo về tiết kiệm điện của trường THPT Trưng Vương. Tôi có thể giúp gì cho bạn về tiết kiệm điện và năng lượng ngay bây giờ?";
+                const greetingResponse = "Xin chào, tôi là TVPower Check - trợ lý ảo về tiết kiệm điện của trường THPT Trưng Vương. Tôi có thể giúp gì cho bạn về tiết kiệm điện và năng lượng ngay bây giờ?";
                 displayTypingMessage(greetingResponse, () => {
                     if (!isStopped) {
                         currentChat.messages.push({ 
